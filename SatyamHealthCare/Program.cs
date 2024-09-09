@@ -1,6 +1,7 @@
-
 using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
+using SatyamHealthCare.Repos;
 
 namespace SatyamHealthCare
 {
@@ -13,6 +14,7 @@ namespace SatyamHealthCare
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.Services.AddScoped<IPatient, PatientService>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

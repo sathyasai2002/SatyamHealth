@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SatyamHealthCare.Models
 {
@@ -21,5 +22,10 @@ namespace SatyamHealthCare.Models
         [Required]
         [MaxLength(10)]
         public string BeforeAfterFood { get; set; }
+
+        public int MedicalRecordID { get; set; }
+
+        [ForeignKey("MedicalRecordID")]
+        public virtual MedicalRecord MedicalRecord { get; set; }
     }
 }

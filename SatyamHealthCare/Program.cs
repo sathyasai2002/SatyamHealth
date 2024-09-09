@@ -19,6 +19,9 @@ namespace SatyamHealthCare
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<SatyamDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("HospContr")));
+            builder.Services.AddScoped<IAdmin, AdminService>();
+            builder.Services.AddScoped<IDoctor, DoctorService>();
+
             var app = builder.Build();
 
 

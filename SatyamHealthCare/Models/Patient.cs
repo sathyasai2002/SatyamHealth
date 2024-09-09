@@ -41,7 +41,7 @@ namespace SatyamHealthCare.Models
         [Required]
         [MaxLength(255)]
         public string Password { get; set; }
-        public byte[] ProfilePicture  { get; set; }
+        public byte[]? ProfilePicture  { get; set; }
 
 
         public ICollection<Appointment>? Appointments { get; set; } = new List<Appointment>();

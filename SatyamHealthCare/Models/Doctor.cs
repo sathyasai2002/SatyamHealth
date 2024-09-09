@@ -26,7 +26,7 @@ namespace SatyamHealthCare.Models
         public string Designation { get; set; }
 
         [Required]
-        [StringLength(100)]
+        
         public int Experience { get; set; }
 
         [Required]
@@ -39,7 +39,7 @@ namespace SatyamHealthCare.Models
         [StringLength (100)]
         public string Qualification { get; set; }
 
-        public byte[] ProfilePicture { get; set; }
+        public byte[]? ProfilePicture { get; set; }
 
         public int AdminId { get; set; }
         public virtual Admin? Admin { get; set; }

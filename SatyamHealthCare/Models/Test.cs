@@ -12,6 +12,6 @@ namespace SatyamHealthCare.Models
         public string TestName { get; set; }
 
         // Navigation property
-        public ICollection<PrescribedTest> PrescribedTests { get; set; }
+        public ICollection<PrescribedTest>? PrescribedTests { get; set; } = new List<PrescribedTest>();  
     }
 }

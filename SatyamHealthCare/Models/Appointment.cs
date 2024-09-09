@@ -12,7 +12,7 @@ namespace SatyamHealthCare.Models
 
         [Required]
         public int PatientId { get; set; }
-        public virtual Patient Patient { get; set; }
+        public virtual Patient? Patient { get; set; }
 
         [Required]
         public int DoctorId { get; set; }

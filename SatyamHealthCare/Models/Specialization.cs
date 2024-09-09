@@ -13,6 +13,6 @@ namespace SatyamHealthCare.Models
         public string SpecializationName { get; set; }
 
         // Navigation property
-        public ICollection<Doctor> Doctors { get; set; }
+        public ICollection<Doctor>? Doctors { get; set; } = new List<Doctor>();
     }
 }

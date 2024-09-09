@@ -33,7 +33,7 @@ namespace SatyamHealthCare.Models
         public int SpecializationID {  get; set; }
 
         [ForeignKey("SpecializationID")]
-        public virtual Specialization Specialization { get; set; }
+        public virtual Specialization? Specialization { get; set; }
 
         [Required]
         [StringLength (100)]
@@ -42,11 +42,11 @@ namespace SatyamHealthCare.Models
         public byte[] ProfilePicture { get; set; }
 
         public int AdminId { get; set; }
-        public virtual Admin Admin { get; set; }
+        public virtual Admin? Admin { get; set; }
 
 
 
-        public virtual ICollection<Appointment> Appointments { get; set; }
-        public virtual ICollection<MedicalRecord> MedicalRecords { get; set; }
+        public virtual ICollection<Appointment>? Appointments { get; set; } = new List<Appointment>();
+        public virtual ICollection<MedicalRecord>? MedicalRecords { get; set; } = new List<MedicalRecord>();
     }
 }

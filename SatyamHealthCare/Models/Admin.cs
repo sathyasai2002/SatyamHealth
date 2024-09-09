@@ -21,6 +21,6 @@ namespace SatyamHealthCare.Models
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
-        public virtual ICollection<Doctor> Doctors { get; set; }
+        public virtual ICollection<Doctor>? Doctors { get; set; } = new List<Doctor>();
     }
 }

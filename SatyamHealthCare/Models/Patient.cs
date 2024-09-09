@@ -44,8 +44,8 @@ namespace SatyamHealthCare.Models
         public byte[] ProfilePicture  { get; set; }
 
 
-        public ICollection<Appointment> Appointments { get; set; }
-        public ICollection<MedicalRecord> MedicalRecords { get; set; }
-        public ICollection<MedicalHistoryFile> MedicalHistoryFiles { get; set; }
+        public ICollection<Appointment>? Appointments { get; set; } = new List<Appointment>();
+        public ICollection<MedicalRecord>? MedicalRecords { get; set; }= new List<MedicalRecord>();
+        public ICollection<MedicalHistoryFile>? MedicalHistoryFiles { get; set; }= new List<MedicalHistoryFile>();
     }
 }

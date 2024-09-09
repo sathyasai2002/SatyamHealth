@@ -20,9 +20,9 @@ namespace SatyamHealthCare.Models
 
         // Foreign Keys and Navigation Properties
         [ForeignKey("RecordID")]
-        public MedicalRecord MedicalRecord { get; set; }
+        public MedicalRecord? MedicalRecord { get; set; }
 
         [ForeignKey("TestID")]
-        public Test Test { get; set; }
+        public Test? Test { get; set; }
     }
 }

@@ -12,8 +12,8 @@ using SatyamHealthCare.Models;
 namespace SatyamHealthCare.Migrations
 {
     [DbContext(typeof(SatyamDbContext))]
-    [Migration("20240909065811_hello")]
-    partial class hello
+    [Migration("20240909082805_hello1")]
+    partial class hello1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -313,6 +313,9 @@ namespace SatyamHealthCare.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescribedTestID"));
 
+                    b.Property<int?>("MedicalRecordRecordID")
+                        .HasColumnType("int");
+
                     b.Property<int>("RecordID")
                         .HasColumnType("int");
 
@@ -326,7 +329,7 @@ namespace SatyamHealthCare.Migrations
 
                     b.HasKey("PrescribedTestID");
 
-                    b.HasIndex("RecordID");
+                    b.HasIndex("MedicalRecordRecordID");
 
                     b.HasIndex("TestID");
 
@@ -351,9 +354,6 @@ namespace SatyamHealthCare.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("MedicalRecordRecordID")
-                        .HasColumnType("int");
-
                     b.Property<string>("MedicineName")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -363,9 +363,12 @@ namespace SatyamHealthCare.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("int");
 
+                    b.Property<int>("RecordID")
+                        .HasColumnType("int");
+
                     b.HasKey("PrescriptionID");
 
-                    b.HasIndex("MedicalRecordRecordID");
+                    b.HasIndex("RecordID");
 
                     b.ToTable("Prescriptions");
                 });
@@ -404,37 +407,6 @@ namespace SatyamHealthCare.Migrations
                     b.HasKey("TestID");
 
                     b.ToTable("Tests");
-                });
-
-            modelBuilder.Entity("SatyamHealthCare.Models.User", b =>
-                {
-                    b.Property<int>("UserID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("UserID");
-
-                    b.HasIndex("Username")
-                        .IsUnique();
-
-                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("SatyamHealthCare.Models.Appointment", b =>
@@ -503,7 +475,7 @@ namespace SatyamHealthCare.Migrations
                     b.HasOne("SatyamHealthCare.Models.Prescription", "Prescription")
                         .WithMany()
                         .HasForeignKey("PrescriptionID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Doctor");
@@ -517,9 +489,7 @@ namespace SatyamHealthCare.Migrations
                 {
                     b.HasOne("SatyamHealthCare.Models.MedicalRecord", "MedicalRecord")
                         .WithMany("PrescribedTests")
-                        .HasForeignKey("RecordID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("MedicalRecordRecordID");
 
                     b.HasOne("SatyamHealthCare.Models.Test", "Test")
                         .WithMany("PrescribedTests")
@@ -534,9 +504,13 @@ namespace SatyamHealthCare.Migrations
 
             modelBuilder.Entity("SatyamHealthCare.Models.Prescription", b =>
                 {
-                    b.HasOne("SatyamHealthCare.Models.MedicalRecord", null)
+                    b.HasOne("SatyamHealthCare.Models.MedicalRecord", "MedicalRecord")
                         .WithMany("Prescriptions")
-                        .HasForeignKey("MedicalRecordRecordID");
+                        .HasForeignKey("RecordID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MedicalRecord");
                 });
 
             modelBuilder.Entity("SatyamHealthCare.Models.Admin", b =>

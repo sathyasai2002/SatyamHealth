@@ -8,7 +8,6 @@ namespace SatyamHealthCare.Models
     {
         public SatyamDbContext(DbContextOptions<SatyamDbContext> options) : base(options)
         { }
-            public DbSet<User> Users { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
@@ -25,9 +24,6 @@ namespace SatyamHealthCare.Models
             base.OnModelCreating(modelBuilder);
 
 
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Username)
-                .IsUnique();
 
             modelBuilder.Entity<Admin>()
                 .HasMany(a => a.Doctors)
@@ -70,9 +66,10 @@ namespace SatyamHealthCare.Models
                 .HasForeignKey(mr => mr.PrescriptionID);
 
             modelBuilder.Entity<MedicalRecord>()
-                .HasMany(mr => mr.PrescribedTests)
-                .WithOne(pt => pt.MedicalRecord)
-                .HasForeignKey(pt => pt.RecordID);
+       .HasMany(mr => mr.Prescriptions)
+       .WithOne(p => p.MedicalRecord)
+       .HasForeignKey(p => p.RecordID)
+       .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PrescribedTest>()
                 .HasOne(pt => pt.Test)
@@ -87,7 +84,8 @@ namespace SatyamHealthCare.Models
             modelBuilder.Entity<Prescription>()
                 .HasMany<MedicalRecord>()
                 .WithOne(mr => mr.Prescription)
-                .HasForeignKey(mr => mr.PrescriptionID);
+                .HasForeignKey(mr => mr.PrescriptionID)
+                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
 

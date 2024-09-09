@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SatyamHealthCare.Migrations
 {
     /// <inheritdoc />
-    public partial class hello : Migration
+    public partial class hello1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -73,21 +73,6 @@ namespace SatyamHealthCare.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tests", x => x.TestID);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Users",
-                columns: table => new
-                {
-                    UserID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Username = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Role = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Users", x => x.UserID);
                 });
 
             migrationBuilder.CreateTable(
@@ -221,17 +206,17 @@ namespace SatyamHealthCare.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     RecordID = table.Column<int>(type: "int", nullable: false),
                     TestID = table.Column<int>(type: "int", nullable: false),
-                    TestResult = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false)
+                    TestResult = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    MedicalRecordRecordID = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PrescribedTests", x => x.PrescribedTestID);
                     table.ForeignKey(
-                        name: "FK_PrescribedTests_MedicalRecords_RecordID",
-                        column: x => x.RecordID,
+                        name: "FK_PrescribedTests_MedicalRecords_MedicalRecordRecordID",
+                        column: x => x.MedicalRecordRecordID,
                         principalTable: "MedicalRecords",
-                        principalColumn: "RecordID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "RecordID");
                     table.ForeignKey(
                         name: "FK_PrescribedTests_Tests_TestID",
                         column: x => x.TestID,
@@ -250,16 +235,17 @@ namespace SatyamHealthCare.Migrations
                     NoOfDays = table.Column<int>(type: "int", maxLength: 255, nullable: false),
                     Dosage = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     BeforeAfterFood = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    MedicalRecordRecordID = table.Column<int>(type: "int", nullable: true)
+                    RecordID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Prescriptions", x => x.PrescriptionID);
                     table.ForeignKey(
-                        name: "FK_Prescriptions_MedicalRecords_MedicalRecordRecordID",
-                        column: x => x.MedicalRecordRecordID,
+                        name: "FK_Prescriptions_MedicalRecords_RecordID",
+                        column: x => x.RecordID,
                         principalTable: "MedicalRecords",
-                        principalColumn: "RecordID");
+                        principalColumn: "RecordID",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -303,9 +289,9 @@ namespace SatyamHealthCare.Migrations
                 column: "PrescriptionID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PrescribedTests_RecordID",
+                name: "IX_PrescribedTests_MedicalRecordRecordID",
                 table: "PrescribedTests",
-                column: "RecordID");
+                column: "MedicalRecordRecordID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PrescribedTests_TestID",
@@ -313,15 +299,9 @@ namespace SatyamHealthCare.Migrations
                 column: "TestID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Prescriptions_MedicalRecordRecordID",
+                name: "IX_Prescriptions_RecordID",
                 table: "Prescriptions",
-                column: "MedicalRecordRecordID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_Username",
-                table: "Users",
-                column: "Username",
-                unique: true);
+                column: "RecordID");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_MedicalRecords_Prescriptions_PrescriptionID",
@@ -329,7 +309,7 @@ namespace SatyamHealthCare.Migrations
                 column: "PrescriptionID",
                 principalTable: "Prescriptions",
                 principalColumn: "PrescriptionID",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Restrict);
         }
 
         /// <inheritdoc />
@@ -355,9 +335,6 @@ namespace SatyamHealthCare.Migrations
 
             migrationBuilder.DropTable(
                 name: "PrescribedTests");
-
-            migrationBuilder.DropTable(
-                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Tests");

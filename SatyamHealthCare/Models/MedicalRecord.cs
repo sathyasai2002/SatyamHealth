@@ -25,13 +25,13 @@ namespace SatyamHealthCare.Models
         public int PrescriptionID { get; set; }
 
         // Foreign Keys and Navigation Properties
-        [ForeignKey("PatientID")]
+      
         public Patient? Patient { get; set; }
 
-        [ForeignKey("DoctorID")]
+       
         public Doctor? Doctor { get; set; }
 
-        [ForeignKey("PrescriptionID")]
+ 
         public Prescription? Prescription { get; set; }
 
         public virtual ICollection<PrescribedTest>? PrescribedTests { get; set; } = new List<PrescribedTest>();

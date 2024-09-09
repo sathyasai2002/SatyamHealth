@@ -9,7 +9,9 @@ namespace SatyamHealthCare.Models
         public int MedicalHistoryId { get; set; }
 
         [Required]
+        
         public int PatientId { get; set; }
+        
         public virtual Patient? Patient { get; set; }
 
         // Yes/No questions

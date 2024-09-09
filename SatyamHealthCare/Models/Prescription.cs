@@ -23,9 +23,9 @@ namespace SatyamHealthCare.Models
         [MaxLength(10)]
         public string BeforeAfterFood { get; set; }
 
-        public int MedicalRecordID { get; set; }
+        public int RecordID { get; set; }
 
-        [ForeignKey("MedicalRecordID")]
-        public virtual MedicalRecord MedicalRecord { get; set; }
+        
+        public virtual MedicalRecord? MedicalRecord { get; set; }
     }
 }

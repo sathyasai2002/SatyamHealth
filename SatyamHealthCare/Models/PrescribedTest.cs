@@ -8,7 +8,6 @@ namespace SatyamHealthCare.Models
     {
         [Key]
         public int PrescribedTestID { get; set; }
-
         [Required]
         public int RecordID { get; set; }
 
@@ -19,10 +18,10 @@ namespace SatyamHealthCare.Models
         public string TestResult { get; set; }
 
         // Foreign Keys and Navigation Properties
-        [ForeignKey("RecordID")]
+        
         public MedicalRecord? MedicalRecord { get; set; }
 
-        [ForeignKey("TestID")]
+        
         public Test? Test { get; set; }
     }
 }

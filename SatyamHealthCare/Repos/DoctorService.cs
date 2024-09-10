@@ -59,16 +59,12 @@ namespace SatyamHealthCare.Repos
             _context.Entry(doctor).State = EntityState.Modified;
         }
 
-        public async Task<bool> DeleteDoctor(int id)
+        public async Task DeleteDoctor(int id)
         {
             var doctor = await _context.Doctors.FindAsync(id);
-            if (doctor == null)
-            {
-                return false;
-            }
-
+           
             _context.Doctors.Remove(doctor);
-            return true;
+            
         }
     }
 

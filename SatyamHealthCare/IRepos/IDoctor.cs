@@ -8,7 +8,7 @@ namespace SatyamHealthCare.IRepos
         Task<Doctor?> GetDoctorById(int id);
         Task <Doctor> AddDoctor(Doctor doctor);
         Task UpdateDoctor(Doctor doctor);
-        Task<bool> DeleteDoctor(int id);
+        Task  DeleteDoctor(int id);
         Task Save();
     }
 }

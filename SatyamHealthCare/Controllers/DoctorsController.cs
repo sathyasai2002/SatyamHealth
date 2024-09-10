@@ -100,16 +100,16 @@ namespace SatyamHealthCare.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDoctor(int id)
         {
-            var doctor = await _context.Doctors.FindAsync(id);
+            var doctor = await doctor1.GetDoctorById(id);
             if (doctor == null)
             {
                 return NotFound();
             }
 
-            doctor1.DeleteDoctor(id);
-            await _context.SaveChangesAsync();
+            await doctor1.DeleteDoctor(id);
+            await doctor1.Save();
 
-            return NoContent();
+            return Ok();
         }
 
         private bool DoctorExists(int id)

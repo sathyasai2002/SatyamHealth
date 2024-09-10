@@ -86,11 +86,6 @@ namespace SatyamHealthCare.Controllers
                 return BadRequest(ModelState);
             }
 
-            
-            if (patient.ProfilePicture == null)
-            {
-                patient.ProfilePicture = new byte[0]; 
-            }
 
             try
             {

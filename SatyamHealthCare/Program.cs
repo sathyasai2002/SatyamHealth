@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
@@ -21,6 +22,12 @@ namespace SatyamHealthCare
             builder.Services.AddDbContext<SatyamDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("HospContr")));
             builder.Services.AddScoped<IAdmin, AdminService>();
             builder.Services.AddScoped<IDoctor, DoctorService>();
+            builder.Services.AddScoped<IAppointment, AppointmentService>();
+           builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
             var app = builder.Build();
 

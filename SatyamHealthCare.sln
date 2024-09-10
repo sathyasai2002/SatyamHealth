@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SatyamHealthCare", "SatyamHealthCare\SatyamHealthCare.csproj", "{310B0482-0C4D-4341-B883-58D64073A3D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SatyamHealthCare", "SatyamHealthCare\SatyamHealthCare.csproj", "{310B0482-0C4D-4341-B883-58D64073A3D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "satyamhealthcareTesting", "satyamhealthcareTesting\satyamhealthcareTesting.csproj", "{8D68C991-21E0-4F45-9F1E-9653E70E2157}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{310B0482-0C4D-4341-B883-58D64073A3D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{310B0482-0C4D-4341-B883-58D64073A3D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{310B0482-0C4D-4341-B883-58D64073A3D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D68C991-21E0-4F45-9F1E-9653E70E2157}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D68C991-21E0-4F45-9F1E-9653E70E2157}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D68C991-21E0-4F45-9F1E-9653E70E2157}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D68C991-21E0-4F45-9F1E-9653E70E2157}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

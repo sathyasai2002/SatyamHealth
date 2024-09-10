@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
-
 namespace SatyamHealthCare.Controllers
 {
     [Route("api/[controller]")]
@@ -14,33 +14,30 @@ namespace SatyamHealthCare.Controllers
     public class PrescriptionsController : ControllerBase
     {
         private readonly SatyamDbContext _context;
-
-        public PrescriptionsController(SatyamDbContext context)
+        private readonly IPrescription prescription1;
+        public PrescriptionsController(SatyamDbContext context, IPrescription prescription1)
         {
             _context = context;
+            this.prescription1 = prescription1;
         }
-
         // GET: api/Prescriptions
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Prescription>>> GetPrescriptions()
         {
-            return await _context.Prescriptions.ToListAsync();
+            var prescriptions = await prescription1.GetAllPrescriptionsAsync();
+            return Ok(prescriptions);
         }
-
         // GET: api/Prescriptions/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Prescription>> GetPrescription(int id)
         {
-            var prescription = await _context.Prescriptions.FindAsync(id);
-
+            var prescription = await prescription1.GetPrescriptionByIdAsync(id);
             if (prescription == null)
             {
                 return NotFound();
             }
-
-            return prescription;
+            return Ok(prescription);
         }
-
         // PUT: api/Prescriptions/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -50,16 +47,13 @@ namespace SatyamHealthCare.Controllers
             {
                 return BadRequest();
             }
-
-            _context.Entry(prescription).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await prescription1.UpdatePrescriptionAsync(prescription);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!PrescriptionExists(id))
+                if (await prescription1.GetPrescriptionByIdAsync(id) == null)
                 {
                     return NotFound();
                 }
@@ -68,37 +62,29 @@ namespace SatyamHealthCare.Controllers
                     throw;
                 }
             }
-
             return NoContent();
         }
-
         // POST: api/Prescriptions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Prescription>> PostPrescription(Prescription prescription)
         {
-            _context.Prescriptions.Add(prescription);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetPrescription", new { id = prescription.PrescriptionID }, prescription);
+            await prescription1.AddPrescriptionAsync(prescription);
+            return CreatedAtAction(nameof(GetPrescription), new { id = prescription.PrescriptionID },
+           prescription);
         }
-
         // DELETE: api/Prescriptions/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePrescription(int id)
         {
-            var prescription = await _context.Prescriptions.FindAsync(id);
+            var prescription = await prescription1.GetPrescriptionByIdAsync(id);
             if (prescription == null)
             {
                 return NotFound();
             }
-
-            _context.Prescriptions.Remove(prescription);
-            await _context.SaveChangesAsync();
-
+            await prescription1.DeletePrescriptionAsync(id);
             return NoContent();
         }
-
         private bool PrescriptionExists(int id)
         {
             return _context.Prescriptions.Any(e => e.PrescriptionID == id);

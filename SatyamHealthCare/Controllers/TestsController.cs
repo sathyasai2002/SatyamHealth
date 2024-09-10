@@ -1,12 +1,13 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
-
 namespace SatyamHealthCare.Controllers
 {
     [Route("api/[controller]")]
@@ -14,33 +15,30 @@ namespace SatyamHealthCare.Controllers
     public class TestsController : ControllerBase
     {
         private readonly SatyamDbContext _context;
-
-        public TestsController(SatyamDbContext context)
+        private readonly ITest test1;
+        public TestsController(SatyamDbContext context, ITest test1)
         {
             _context = context;
+            this.test1 = test1;
         }
-
         // GET: api/Tests
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Test>>> GetTests()
         {
-            return await _context.Tests.ToListAsync();
+            var tests = await test1.GetAllTestsAsync();
+            return Ok(tests);
         }
-
         // GET: api/Tests/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Test>> GetTest(int id)
         {
-            var test = await _context.Tests.FindAsync(id);
-
+            var test = await test1.GetTestByIdAsync(id);
             if (test == null)
             {
                 return NotFound();
             }
-
-            return test;
+            return Ok(test);
         }
-
         // PUT: api/Tests/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -50,16 +48,13 @@ namespace SatyamHealthCare.Controllers
             {
                 return BadRequest();
             }
-
-            _context.Entry(test).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await test1.UpdateTestAsync(test);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TestExists(id))
+                if (await test1.GetTestByIdAsync(id) == null)
                 {
                     return NotFound();
                 }
@@ -68,37 +63,28 @@ namespace SatyamHealthCare.Controllers
                     throw;
                 }
             }
-
             return NoContent();
         }
-
         // POST: api/Tests
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Test>> PostTest(Test test)
         {
-            _context.Tests.Add(test);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetTest", new { id = test.TestID }, test);
+            await test1.AddTestAsync(test);
+            return CreatedAtAction(nameof(GetTest), new { id = test.TestID }, test);
         }
-
         // DELETE: api/Tests/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTest(int id)
         {
-            var test = await _context.Tests.FindAsync(id);
+            var test = await test1.GetTestByIdAsync(id);
             if (test == null)
             {
                 return NotFound();
             }
-
-            _context.Tests.Remove(test);
-            await _context.SaveChangesAsync();
-
+            await test1.DeleteTestAsync(id);
             return NoContent();
         }
-
         private bool TestExists(int id)
         {
             return _context.Tests.Any(e => e.TestID == id);

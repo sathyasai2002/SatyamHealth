@@ -27,7 +27,8 @@ namespace SatyamHealthCare.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctors()
         {
-            return await doctor1.GetAllDoctors();
+            var doctor =  await doctor1.GetAllDoctors();
+            return Ok(doctor);
         }
 
         // GET: api/Doctors/5
@@ -41,7 +42,7 @@ namespace SatyamHealthCare.Controllers
                 return NotFound();
             }
 
-            return doctor;
+            return Ok(doctor);
         }
 
         // PUT: api/Doctors/5

@@ -5,103 +5,100 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
-
 namespace SatyamHealthCare.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MedicalHistoryFilesController : ControllerBase
+    public class MedicalHistoryFiles1Controller : ControllerBase
     {
         private readonly SatyamDbContext _context;
-
-        public MedicalHistoryFilesController(SatyamDbContext context)
+        private readonly IMedicalHistoryFile medicalHistoryFile1;
+        public MedicalHistoryFiles1Controller(SatyamDbContext context, IMedicalHistoryFile
+       medicalHistoryFile1)
         {
             _context = context;
+            this.medicalHistoryFile1 = medicalHistoryFile1;
         }
-
-        // GET: api/MedicalHistoryFiles
+        // GET: api/MedicalHistoryFiles1
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MedicalHistoryFile>>> GetMedicalHistoryFiles()
         {
-            return await _context.MedicalHistoryFiles.ToListAsync();
+            var medicalHistoryFiles = await medicalHistoryFile1.GetAllMedicalHistoryFiles();
+            return Ok(medicalHistoryFiles);
         }
-
-        // GET: api/MedicalHistoryFiles/5
+        // GET: api/MedicalHistoryFiles1/5
         [HttpGet("{id}")]
         public async Task<ActionResult<MedicalHistoryFile>> GetMedicalHistoryFile(int id)
         {
-            var medicalHistoryFile = await _context.MedicalHistoryFiles.FindAsync(id);
-
+            var medicalHistoryFile = await medicalHistoryFile1.GetMedicalHistoryFileById(id);
             if (medicalHistoryFile == null)
             {
                 return NotFound();
             }
-
-            return medicalHistoryFile;
+            return Ok(medicalHistoryFile);
         }
-
-        // PUT: api/MedicalHistoryFiles/5
+        // GET: api/MedicalHistoryFiles/patient/5
+        [HttpGet("patient/{patientId}")]
+        public async Task<ActionResult<IEnumerable<MedicalHistoryFile>>>
+       GetMedicalHistoryFilesByPatientId(int patientId)
+        {
+            var medicalHistoryFiles = await
+           medicalHistoryFile1.GetMedicalHistoryFilesByPatientId(patientId);
+            if (medicalHistoryFiles == null)
+            {
+                return NotFound();
+            }
+            return Ok(medicalHistoryFiles);
+        }
+        // PUT: api/MedicalHistoryFiles1/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutMedicalHistoryFile(int id, MedicalHistoryFile medicalHistoryFile)
+        public async Task<IActionResult> PutMedicalHistoryFile(int id, MedicalHistoryFile
+       medicalHistoryFile)
         {
             if (id != medicalHistoryFile.MedicalHistoryId)
             {
                 return BadRequest();
             }
-
-            _context.Entry(medicalHistoryFile).State = EntityState.Modified;
-
-            try
+            var existingMedicalHistoryFile = await medicalHistoryFile1.GetMedicalHistoryFileById(id);
+            if (existingMedicalHistoryFile == null)
             {
-                await _context.SaveChangesAsync();
+                return NotFound();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MedicalHistoryFileExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await medicalHistoryFile1.UpdateMedicalHistoryFile(medicalHistoryFile);
             return NoContent();
         }
-
-        // POST: api/MedicalHistoryFiles
+        // POST: api/MedicalHistoryFiles1
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<MedicalHistoryFile>> PostMedicalHistoryFile(MedicalHistoryFile medicalHistoryFile)
+        public async Task<ActionResult<MedicalHistoryFile>> PostMedicalHistoryFile(MedicalHistoryFile
+       medicalHistoryFile)
         {
-            _context.MedicalHistoryFiles.Add(medicalHistoryFile);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetMedicalHistoryFile", new { id = medicalHistoryFile.MedicalHistoryId }, medicalHistoryFile);
+            await medicalHistoryFile1.AddMedicalHistoryFile(medicalHistoryFile);
+            return CreatedAtAction(nameof(GetMedicalHistoryFile), new
+            {
+                id =
+           medicalHistoryFile.MedicalHistoryId
+            }, medicalHistoryFile);
         }
-
-        // DELETE: api/MedicalHistoryFiles/5
+        // DELETE: api/MedicalHistoryFiles1/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMedicalHistoryFile(int id)
         {
-            var medicalHistoryFile = await _context.MedicalHistoryFiles.FindAsync(id);
+            var medicalHistoryFile = await medicalHistoryFile1.GetMedicalHistoryFileById(id);
             if (medicalHistoryFile == null)
             {
                 return NotFound();
             }
-
-            _context.MedicalHistoryFiles.Remove(medicalHistoryFile);
-            await _context.SaveChangesAsync();
-
+            await medicalHistoryFile1.DeleteMedicalHistoryFile(id);
             return NoContent();
         }
-
         private bool MedicalHistoryFileExists(int id)
         {
-            return _context.MedicalHistoryFiles.Any(e => e.MedicalHistoryId == id);
+            return medicalHistoryFile1.GetById(id) != null;
         }
     }
 }
+

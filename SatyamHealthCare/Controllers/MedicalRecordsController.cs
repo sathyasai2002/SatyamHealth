@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SatyamHealthCare.Models;
-
+using SatyamHealthCare.IRepos;
 namespace SatyamHealthCare.Controllers
 {
     [Route("api/[controller]")]
@@ -14,33 +14,30 @@ namespace SatyamHealthCare.Controllers
     public class MedicalRecordsController : ControllerBase
     {
         private readonly SatyamDbContext _context;
-
-        public MedicalRecordsController(SatyamDbContext context)
+        private readonly IMedicalRecord medicalRecord1;
+        public MedicalRecordsController(SatyamDbContext context, IMedicalRecord medicalRecord1)
         {
             _context = context;
+            this.medicalRecord1 = medicalRecord1;
         }
-
         // GET: api/MedicalRecords
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MedicalRecord>>> GetMedicalRecords()
         {
-            return await _context.MedicalRecords.ToListAsync();
+            var medicalRecords = await medicalRecord1.GetAllMedicalRecordsAsync();
+            return Ok(medicalRecords);
         }
-
         // GET: api/MedicalRecords/5
         [HttpGet("{id}")]
         public async Task<ActionResult<MedicalRecord>> GetMedicalRecord(int id)
         {
-            var medicalRecord = await _context.MedicalRecords.FindAsync(id);
-
+            var medicalRecord = await medicalRecord1.GetMedicalRecordByIdAsync(id);
             if (medicalRecord == null)
             {
                 return NotFound();
             }
-
-            return medicalRecord;
+            return Ok(medicalRecord);
         }
-
         // PUT: api/MedicalRecords/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -50,14 +47,11 @@ namespace SatyamHealthCare.Controllers
             {
                 return BadRequest();
             }
-
-            _context.Entry(medicalRecord).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await medicalRecord1.UpdateMedicalRecordAsync(medicalRecord);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception)
             {
                 if (!MedicalRecordExists(id))
                 {
@@ -68,37 +62,30 @@ namespace SatyamHealthCare.Controllers
                     throw;
                 }
             }
-
             return NoContent();
         }
-
         // POST: api/MedicalRecords
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<MedicalRecord>> PostMedicalRecord(MedicalRecord medicalRecord)
+        public async Task<ActionResult<MedicalRecord>> PostMedicalRecord(MedicalRecord
+       medicalRecord)
         {
-            _context.MedicalRecords.Add(medicalRecord);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetMedicalRecord", new { id = medicalRecord.RecordID }, medicalRecord);
+            await medicalRecord1.AddMedicalRecordAsync(medicalRecord);
+            return CreatedAtAction("GetMedicalRecord", new { id = medicalRecord.RecordID },
+           medicalRecord);
         }
-
         // DELETE: api/MedicalRecords/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMedicalRecord(int id)
         {
-            var medicalRecord = await _context.MedicalRecords.FindAsync(id);
+            var medicalRecord = await medicalRecord1.GetMedicalRecordByIdAsync(id);
             if (medicalRecord == null)
             {
                 return NotFound();
             }
-
-            _context.MedicalRecords.Remove(medicalRecord);
-            await _context.SaveChangesAsync();
-
+            await medicalRecord1.DeleteMedicalRecordAsync(id);
             return NoContent();
         }
-
         private bool MedicalRecordExists(int id)
         {
             return _context.MedicalRecords.Any(e => e.RecordID == id);

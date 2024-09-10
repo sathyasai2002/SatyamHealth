@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
-
 namespace SatyamHealthCare.Controllers
 {
     [Route("api/[controller]")]
@@ -14,33 +14,30 @@ namespace SatyamHealthCare.Controllers
     public class PrescribedTestsController : ControllerBase
     {
         private readonly SatyamDbContext _context;
-
-        public PrescribedTestsController(SatyamDbContext context)
+        private readonly IPrescribedTest prescribedTest1;
+        public PrescribedTestsController(SatyamDbContext context, IPrescribedTest prescribedTest1)
         {
             _context = context;
+            this.prescribedTest1 = prescribedTest1;
         }
-
         // GET: api/PrescribedTests
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PrescribedTest>>> GetPrescribedTests()
         {
-            return await _context.PrescribedTests.ToListAsync();
+            var prescribedTests = await prescribedTest1.GetAllPrescribedTestsAsync();
+            return Ok(prescribedTests);
         }
-
         // GET: api/PrescribedTests/5
         [HttpGet("{id}")]
         public async Task<ActionResult<PrescribedTest>> GetPrescribedTest(int id)
         {
-            var prescribedTest = await _context.PrescribedTests.FindAsync(id);
-
+            var prescribedTest = await prescribedTest1.GetPrescribedTestByIdAsync(id);
             if (prescribedTest == null)
             {
                 return NotFound();
             }
-
-            return prescribedTest;
+            return Ok(prescribedTest);
         }
-
         // PUT: api/PrescribedTests/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -50,16 +47,13 @@ namespace SatyamHealthCare.Controllers
             {
                 return BadRequest();
             }
-
-            _context.Entry(prescribedTest).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await prescribedTest1.UpdatePrescribedTestAsync(prescribedTest);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!PrescribedTestExists(id))
+                if (!await PrescribedTestExists(id))
                 {
                     return NotFound();
                 }
@@ -68,40 +62,33 @@ namespace SatyamHealthCare.Controllers
                     throw;
                 }
             }
-
             return NoContent();
         }
-
         // POST: api/PrescribedTests
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<PrescribedTest>> PostPrescribedTest(PrescribedTest prescribedTest)
+        public async Task<ActionResult<PrescribedTest>> PostPrescribedTest(PrescribedTest
+       prescribedTest)
         {
-            _context.PrescribedTests.Add(prescribedTest);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetPrescribedTest", new { id = prescribedTest.PrescribedTestID }, prescribedTest);
+            await prescribedTest1.AddPrescribedTestAsync(prescribedTest);
+            return CreatedAtAction("GetPrescribedTest", new { id = prescribedTest.PrescribedTestID },
+           prescribedTest);
         }
-
         // DELETE: api/PrescribedTests/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePrescribedTest(int id)
         {
-            var prescribedTest = await _context.PrescribedTests.FindAsync(id);
+            var prescribedTest = await prescribedTest1.GetPrescribedTestByIdAsync(id);
             if (prescribedTest == null)
             {
                 return NotFound();
             }
-
-            _context.PrescribedTests.Remove(prescribedTest);
-            await _context.SaveChangesAsync();
-
+            await prescribedTest1.DeletePrescribedTestAsync(id);
             return NoContent();
         }
-
-        private bool PrescribedTestExists(int id)
+        private async Task<bool> PrescribedTestExists(int id)
         {
-            return _context.PrescribedTests.Any(e => e.PrescribedTestID == id);
+            return await prescribedTest1.PrescribedTestExistsAsync(id);
         }
     }
 }

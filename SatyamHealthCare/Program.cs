@@ -23,7 +23,13 @@ namespace SatyamHealthCare
             builder.Services.AddScoped<IAdmin, AdminService>();
             builder.Services.AddScoped<IDoctor, DoctorService>();
             builder.Services.AddScoped<IAppointment, AppointmentService>();
-           builder.Services.AddControllers()
+            builder.Services.AddScoped<IMedicalRecord, MedicalRecordService>();
+            builder.Services.AddScoped<IPrescription, PrescriptionService>();
+            builder.Services.AddScoped<ITest, TestService>();
+            builder.Services.AddScoped<IPrescribedTest, PrescribedTestService>();
+
+
+            builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());

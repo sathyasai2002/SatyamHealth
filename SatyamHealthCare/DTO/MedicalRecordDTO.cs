@@ -18,14 +18,6 @@ namespace SatyamHealthCare.DTO
 
         [Required]
         public int PrescriptionID { get; set; }
-
-        // Optional properties to include related entities
-        public PatientDTO? Patient { get; set; }
-        public DoctorDTO? Doctor { get; set; }
-        public PrescriptionDTO? Prescription { get; set; }
-
-        public ICollection<PrescribedTestDTO>? PrescribedTests { get; set; } = new List<PrescribedTestDTO>();
-        public ICollection<PrescriptionDTO>? Prescriptions { get; set; } = new List<PrescriptionDTO>();
     }
 
   

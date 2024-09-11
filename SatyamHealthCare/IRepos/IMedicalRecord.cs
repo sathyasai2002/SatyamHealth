@@ -6,7 +6,7 @@ namespace SatyamHealthCare.IRepos
     {
         Task<IEnumerable<MedicalRecord>> GetAllMedicalRecordsAsync();
         Task<MedicalRecord?> GetMedicalRecordByIdAsync(int id);
-        Task AddMedicalRecordAsync(MedicalRecord medicalRecord);
+        Task<MedicalRecord> AddMedicalRecordAsync(MedicalRecord medicalRecord);
         Task UpdateMedicalRecordAsync(MedicalRecord medicalRecord);
         Task DeleteMedicalRecordAsync(int id);
     }

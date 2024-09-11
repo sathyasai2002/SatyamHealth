@@ -31,10 +31,11 @@ namespace SatyamHealthCare.Repos
             .FirstOrDefaultAsync(mr => mr.RecordID == id);
         }
         // Add a new medical record
-        public async Task AddMedicalRecordAsync(MedicalRecord medicalRecord)
+        public async Task<MedicalRecord> AddMedicalRecordAsync(MedicalRecord medicalRecord)
         {
             _context.MedicalRecords.Add(medicalRecord);
             await _context.SaveChangesAsync();
+            return medicalRecord;
         }
         // Update an existing medical record
         public async Task UpdateMedicalRecordAsync(MedicalRecord medicalRecord)

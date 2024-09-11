@@ -30,7 +30,8 @@ namespace SatyamHealthCare.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
         {
-            return await patient1.GetAllPatients();
+            var patients = await patient1.GetAllPatients();
+            return Ok(patients);
         }
 
         // GET: api/Patients/5
@@ -38,13 +39,11 @@ namespace SatyamHealthCare.Controllers
         public async Task<ActionResult<Patient>> GetPatient(int id)
         {
             var patient = await patient1.GetPatientById(id);
-
             if (patient == null)
             {
                 return NotFound();
             }
-
-            return patient;
+            return Ok(patient);
         }
 
         // PUT: api/Patients/5
@@ -102,8 +101,8 @@ namespace SatyamHealthCare.Controllers
                 Password = patientDto.Password,
                 ProfilePicture = patientDto.ProfilePicture
             };
-            await patient1.AddPatient(patient);
-            return Ok(new { message = "Patient registered successfully", patient });
+            var createdPatient = await patient1.AddPatient(patient);
+            return Ok(new { message = "Patient registered successfully", patient = createdPatient });
         }
 
             // DELETE: api/Patients/5
@@ -116,8 +115,11 @@ namespace SatyamHealthCare.Controllers
                 return NotFound();
             }
 
-            _context.Patients.Remove(patient);
-            await _context.SaveChangesAsync();
+            var deleteResult = await patient1.DeletePatient(id);
+            if (!deleteResult)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting patient");
+            }
 
             return NoContent();
         }

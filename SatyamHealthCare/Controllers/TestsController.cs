@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
+using SatyamHealthCare.DTO;
+
 namespace SatyamHealthCare.Controllers
 {
     [Route("api/[controller]")]
@@ -16,45 +17,73 @@ namespace SatyamHealthCare.Controllers
     {
         private readonly SatyamDbContext _context;
         private readonly ITest test1;
+
         public TestsController(SatyamDbContext context, ITest test1)
         {
             _context = context;
             this.test1 = test1;
         }
+
         // GET: api/Tests
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Test>>> GetTests()
+        public async Task<ActionResult<IEnumerable<TestDTO>>> GetTests()
         {
             var tests = await test1.GetAllTestsAsync();
-            return Ok(tests);
+
+            // Mapping Test to TestDTO
+            var testDtos = tests.Select(t => new TestDTO
+            {
+                TestID = t.TestID,
+                TestName = t.TestName
+            }).ToList();
+
+            return Ok(testDtos);
         }
+
         // GET: api/Tests/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Test>> GetTest(int id)
+        public async Task<ActionResult<TestDTO>> GetTest(int id)
         {
             var test = await test1.GetTestByIdAsync(id);
+
             if (test == null)
             {
                 return NotFound();
             }
-            return Ok(test);
+
+            // Mapping Test to TestDTO
+            var testDto = new TestDTO
+            {
+                TestID = test.TestID,
+                TestName = test.TestName
+            };
+
+            return Ok(testDto);
         }
+
         // PUT: api/Tests/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTest(int id, Test test)
+        public async Task<IActionResult> PutTest(int id, TestDTO testDto)
         {
-            if (id != test.TestID)
+            if (id != testDto.TestID)
             {
                 return BadRequest();
             }
+
+            // Mapping TestDTO to Test
+            var test = new Test
+            {
+                TestID = testDto.TestID,
+                TestName = testDto.TestName
+            };
+
             try
             {
                 await test1.UpdateTestAsync(test);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (await test1.GetTestByIdAsync(id) == null)
+                if (!await TestExists(id))
                 {
                     return NotFound();
                 }
@@ -63,31 +92,47 @@ namespace SatyamHealthCare.Controllers
                     throw;
                 }
             }
+
             return NoContent();
         }
+
         // POST: api/Tests
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Test>> PostTest(Test test)
+        public async Task<ActionResult<TestDTO>> PostTest(TestDTO testDto)
         {
+            // Mapping TestDTO to Test
+            var test = new Test
+            {
+                TestName = testDto.TestName
+            };
+
             await test1.AddTestAsync(test);
-            return CreatedAtAction(nameof(GetTest), new { id = test.TestID }, test);
+
+            // Mapping back to TestDTO for the response
+            testDto.TestID = test.TestID;
+
+            return CreatedAtAction(nameof(GetTest), new { id = test.TestID }, testDto);
         }
+
         // DELETE: api/Tests/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTest(int id)
         {
             var test = await test1.GetTestByIdAsync(id);
+
             if (test == null)
             {
                 return NotFound();
             }
+
             await test1.DeleteTestAsync(id);
+
             return NoContent();
         }
-        private bool TestExists(int id)
+
+        private async Task<bool> TestExists(int id)
         {
-            return _context.Tests.Any(e => e.TestID == id);
+            return await test1.GetTestByIdAsync(id) != null;
         }
     }
 }

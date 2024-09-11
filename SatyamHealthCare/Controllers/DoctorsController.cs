@@ -102,12 +102,13 @@ namespace SatyamHealthCare.Controllers
                 ProfilePicture = doctorDto.ProfilePicture,
                 AdminId = doctorDto.AdminId
             };
-            await doctor1.AddDoctor(doctor);
+            var createdDoctor = await doctor1.AddDoctor(doctor);
+            await doctor1.Save();
 
-            
-            return Ok(new { message = "Doctor registered successfully", doctor });
-       
-          
+
+            return Ok(new { message = "Doctor registered successfully", doctor = createdDoctor });
+
+
         }
 
         // DELETE: api/Doctors/5

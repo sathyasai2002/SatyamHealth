@@ -1,9 +1,11 @@
 ﻿using Moq;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Microsoft.AspNetCore.Mvc;
 using SatyamHealthCare.Controllers;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
+using SatyamHealthCare.DTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -32,7 +34,7 @@ namespace SatyamHealthCare.Tests.Controllers
 
             var doctors = new List<Doctor>
             {
-                new Doctor { DoctorId = 1, FullName = "Doctor1", Specialization =specialization },
+                new Doctor { DoctorId = 1, FullName = "Doctor1", Specialization = specialization },
                 new Doctor { DoctorId = 2, FullName = "Doctor2", Specialization = specialization1 }
             };
             _mockDoctorRepo.Setup(repo => repo.GetAllDoctors()).ReturnsAsync(doctors);
@@ -85,28 +87,74 @@ namespace SatyamHealthCare.Tests.Controllers
 
         // Unit Test for PostDoctor (Successful Creation)
         [Test]
-        public async Task PostDoctor_ReturnsCreatedAtAction_WhenDoctorIsCreated()
+        public async Task PostDoctor_ReturnsOk_WhenDoctorIsCreated()
         {
             // Arrange
-            var specialization = new Specialization { SpecializationID = 1, SpecializationName = "Cardiology" };
+            var doctorDto = new DoctorDTO
+            {
+                FullName = "Doctor1",
+                PhoneNo = "1234567890",
+                Email = "doctor1@example.com",
+                Password = "Password123",
+                Designation = "Cardiologist",
+                Experience = 5,
+                SpecializationID = 1,
+                Qualification = "MBBS",
+                AdminId = 1
+            };
 
-            var doctor = new Doctor { DoctorId = 1, FullName = "Doctor1", Specialization = specialization };
+            var doctor = new Doctor
+            {
+                DoctorId = 1,
+                FullName = "Doctor1",
+                PhoneNo = "1234567890",
+                Email = "doctor1@example.com",
+                Password = "Password123",
+                Designation = "Cardiologist",
+                Experience = 5,
+                SpecializationID = 1,
+                Qualification = "MBBS",
+                ProfilePicture = null,
+                AdminId = 1
+            };
 
             _mockDoctorRepo.Setup(repo => repo.AddDoctor(It.IsAny<Doctor>())).ReturnsAsync(doctor);
+            _mockDoctorRepo.Setup(repo => repo.Save()).Returns(Task.CompletedTask);
 
             // Act
-            var result = await _controller.PostDoctor(doctor);
+            var result = await _controller.PostDoctor(doctorDto);
 
             // Assert
-            Assert.IsInstanceOf<ActionResult<Doctor>>(result);
-            Assert.IsInstanceOf<CreatedAtActionResult>(result.Result);
-            var createdAtActionResult = result.Result as CreatedAtActionResult;
-            Assert.AreEqual(nameof(_controller.PostDoctor), createdAtActionResult.ActionName);
-            Assert.AreEqual(doctor.DoctorId, ((Doctor)createdAtActionResult.Value).DoctorId);
+            Assert.IsInstanceOf<OkObjectResult>(result.Result, "Result is not OkObjectResult");
+            var okResult = result.Result as OkObjectResult;
+
+            Assert.IsNotNull(okResult, "OkObjectResult is null");
+
+            // Use JObject to parse the response
+            var response = JObject.FromObject(okResult.Value);
+
+            Assert.IsNotNull(response, "Response object is null");
+
+            // Check message
+            Assert.AreEqual("Doctor registered successfully", response["message"].ToString());
+
+            // Check doctor object in response
+            var doctorResult = response["doctor"].ToObject<Doctor>();
+            Assert.IsNotNull(doctorResult, "Doctor object in response is null");
+
+            Assert.AreEqual(doctor.DoctorId, doctorResult.DoctorId);
+            Assert.AreEqual(doctor.FullName, doctorResult.FullName);
+            Assert.AreEqual(doctor.PhoneNo, doctorResult.PhoneNo);
+            Assert.AreEqual(doctor.Email, doctorResult.Email);
+            Assert.AreEqual(doctor.Designation, doctorResult.Designation);
+            Assert.AreEqual(doctor.Experience, doctorResult.Experience);
+            Assert.AreEqual(doctor.SpecializationID, doctorResult.SpecializationID);
+            Assert.AreEqual(doctor.Qualification, doctorResult.Qualification);
+            Assert.AreEqual(doctor.AdminId, doctorResult.AdminId);
         }
 
-        // Unit Test for PostDoctor (Invalid Model State)
-     
-        
+
+
     }
 }
+

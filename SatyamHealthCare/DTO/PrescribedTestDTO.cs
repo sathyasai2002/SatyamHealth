@@ -16,7 +16,7 @@ namespace SatyamHealthCare.DTO
         [MaxLength(500)]
         public string TestResult { get; set; }
 
-        public TestDTO? Test { get; set; }
+        
     }
 
   

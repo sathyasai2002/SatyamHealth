@@ -2,9 +2,11 @@ using Moq;
 using NUnit.Framework;
 using Microsoft.AspNetCore.Mvc;
 using SatyamHealthCare.Controllers;
+using Microsoft.AspNetCore.Http;
 using SatyamHealthCare.DTO;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
+using System.Security.Claims;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
@@ -23,6 +25,20 @@ namespace SatyamHealthCare.Tests.Controllers
         {
             _mockAppointmentRepo = new Mock<IAppointment>();
             _controller = new AppointmentsController(null, _mockAppointmentRepo.Object);
+
+            // Simulate JWT claims for the logged-in patient
+            var mockClaims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Role, "Patient"),
+                new Claim("PatientID", "1") // Assuming the PatientID claim is set this way
+            };
+            var mockIdentity = new ClaimsIdentity(mockClaims);
+            var mockPrincipal = new ClaimsPrincipal(mockIdentity);
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = mockPrincipal }
+            };
         }
 
         [Test]
@@ -89,10 +105,10 @@ namespace SatyamHealthCare.Tests.Controllers
             // Arrange
             var appointmentDto = new AppointmentDTO
             {
-                PatientId = 1,
+                PatientId = 1, 
                 DoctorId = 1,
-                Status = AppointmentStatus.Pending,
-                AppointmentDate = System.DateTime.Now
+                Status = Constants.Enum.AppointmentStatus.Pending,
+                AppointmentDate = DateTime.Now
             };
 
             var appointment = new Appointment
@@ -100,8 +116,8 @@ namespace SatyamHealthCare.Tests.Controllers
                 AppointmentId = 1,
                 PatientId = 1,
                 DoctorId = 1,
-                Status = AppointmentStatus.Pending,
-                AppointmentDate = System.DateTime.Now
+                Status = Constants.Enum.AppointmentStatus.Pending,
+                AppointmentDate = DateTime.Now
             };
 
             _mockAppointmentRepo.Setup(repo => repo.AddAppointment(It.IsAny<Appointment>())).ReturnsAsync(appointment);
@@ -110,7 +126,20 @@ namespace SatyamHealthCare.Tests.Controllers
             var result = await _controller.PostAppointment(appointmentDto);
 
             // Assert
-            Assert.IsInstanceOf<CreatedAtActionResult>(result.Result);
+            Assert.IsInstanceOf<CreatedAtActionResult>(result.Result, "Result is not CreatedAtActionResult");
+            var createdAtActionResult = result.Result as CreatedAtActionResult;
+
+            Assert.IsNotNull(createdAtActionResult, "CreatedAtActionResult is null");
+            Assert.AreEqual(nameof(_controller.GetAppointment), createdAtActionResult.ActionName, "Action name is incorrect");
+
+            var returnedAppointment = createdAtActionResult.Value as Appointment;
+            Assert.IsNotNull(returnedAppointment, "Returned appointment is null");
+
+            Assert.AreEqual(appointment.AppointmentId, returnedAppointment.AppointmentId, "AppointmentId mismatch");
+            Assert.AreEqual(appointment.PatientId, returnedAppointment.PatientId, "PatientId mismatch");
+            Assert.AreEqual(appointment.DoctorId, returnedAppointment.DoctorId, "DoctorId mismatch");
+            Assert.AreEqual(appointment.Status, returnedAppointment.Status, "Status mismatch");
+            Assert.AreEqual(appointment.AppointmentDate, returnedAppointment.AppointmentDate, "AppointmentDate mismatch");
         }
 
         [Test]

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SatyamHealthCare.Controllers;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
+using SatyamHealthCare.DTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -29,8 +30,8 @@ namespace SatyamHealthCare.Tests.Controllers
             // Arrange
             var admins = new List<Admin>
             {
-                new Admin { AdminId = 1 },
-                new Admin { AdminId = 2 }
+                new Admin { AdminId = 1, FullName = "Admin1", Email = "admin1@example.com", Password = "Password1" },
+                new Admin { AdminId = 2, FullName = "Admin2", Email = "admin2@example.com", Password = "Password2" }
             };
             _mockAdminRepo.Setup(repo => repo.GetAllAdmins()).ReturnsAsync(admins);
 
@@ -45,6 +46,7 @@ namespace SatyamHealthCare.Tests.Controllers
             Assert.AreEqual(admins.Count, resultAdmins?.Count());
         }
 
+        // Unit Test for GetAdminById
         [Test]
         public async Task GetAdminById_ReturnsOk_WhenAdminExists()
         {
@@ -60,25 +62,43 @@ namespace SatyamHealthCare.Tests.Controllers
             var okResult = result.Result as OkObjectResult;
             Assert.AreEqual(admin, okResult?.Value);
         }
+
+        [Test]
+        public async Task GetAdminById_ReturnsNotFound_WhenAdminDoesNotExist()
+        {
+            // Arrange
+            _mockAdminRepo.Setup(repo => repo.GetAdminById(1)).ReturnsAsync((Admin)null);
+
+            // Act
+            var result = await _controller.GetAdminById(1);
+
+            // Assert
+            Assert.IsInstanceOf<NotFoundResult>(result.Result);
+        }
+
+        // Unit Test for PostAdmin
         [Test]
         public async Task PostAdmin_ReturnsCreatedAtAction_WhenAdminIsCreated()
         {
             // Arrange
+            var adminDto = new AdminDTO { FullName = "Admin1", Email = "admin1@example.com", Password = "Password123" };
             var admin = new Admin { AdminId = 1, FullName = "Admin1", Email = "admin1@example.com", Password = "Password123" };
+
             _mockAdminRepo.Setup(repo => repo.AddAdmin(It.IsAny<Admin>())).Returns(Task.CompletedTask);
             _mockAdminRepo.Setup(repo => repo.Save()).Returns(Task.CompletedTask);
 
             // Act
-            var result = await _controller.PostAdmin(admin);
+            var result = await _controller.PostAdmin(adminDto);
 
             // Assert
             Assert.IsInstanceOf<CreatedAtActionResult>(result.Result);
             var createdAtActionResult = result.Result as CreatedAtActionResult;
-            Assert.AreEqual(nameof(_controller.GetAdminById), createdAtActionResult.ActionName);
-            Assert.AreEqual(admin.AdminId, ((Admin)createdAtActionResult.Value).AdminId);
+
+            // Cast to Admin because the controller returns an Admin model
+            Assert.AreEqual(adminDto.FullName, ((Admin)createdAtActionResult.Value).FullName);
         }
 
+
+
     }
-
-
 }

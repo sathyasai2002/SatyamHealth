@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.DTO;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
+using SatyamHealthCare.Repos;
 
 namespace SatyamHealthCare.Controllers
 {
@@ -77,30 +79,35 @@ namespace SatyamHealthCare.Controllers
         // POST: api/Patients
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Patient>> PostPatient(Patient patient)
+        public async Task<ActionResult<Patient>> PostPatient(PatientDTO patientDto)
         {
 
             if (!ModelState.IsValid)
             {
-                
+
                 return BadRequest(ModelState);
             }
 
-
-            try
+            var patient = new Patient
             {
-                var createdPatient = await patient1.AddPatient(patient);
-                return CreatedAtAction("GetPatient", new { id = createdPatient.PatientID }, createdPatient);
-            }
-            catch (Exception ex)
-            {
-                
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating the patient.");
-            }
+                FullName = patientDto.FullName,
+                DateOfBirth = patientDto.DateOfBirth,
+                Gender = patientDto.Gender,
+                BloodGroup = patientDto.BloodGroup,
+                ContactNumber = patientDto.ContactNumber,
+                Email = patientDto.Email,
+                Address = patientDto.Address,
+                Pincode = patientDto.Pincode,
+                City = patientDto.City,
+                Password = patientDto.Password,
+                ProfilePicture = patientDto.ProfilePicture
+            };
+            await patient1.AddPatient(patient);
+            return Ok(new { message = "Patient registered successfully", patient });
         }
 
-        // DELETE: api/Patients/5
-        [HttpDelete("{id}")]
+            // DELETE: api/Patients/5
+            [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePatient(int id)
         {
             var patient = await patient1.GetPatientById(id);

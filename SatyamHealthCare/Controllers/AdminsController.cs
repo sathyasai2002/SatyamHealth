@@ -2,15 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.DTO;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.Repos;
 
 namespace SatyamHealthCare.Controllers
 {
+    
     [Route("api/[controller]")]
     [ApiController]
     public class AdminsController : ControllerBase
@@ -25,6 +28,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/Admins
+       
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Admin>>> GetAdmins()
         {
@@ -48,6 +52,7 @@ namespace SatyamHealthCare.Controllers
 
         // PUT: api/Admins/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        
         [HttpPut("{id}")]
         public async Task<IActionResult> PutAdmin(int id, [FromBody] Admin admin)
         {
@@ -80,22 +85,23 @@ namespace SatyamHealthCare.Controllers
         // POST: api/Admins
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Admin>> PostAdmin([FromBody] Admin admin)
+        public async Task<ActionResult<Admin>> PostAdmin([FromBody] AdminDTO adminDTO)
         {
-            if (admin == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Admin cannot be null.");
+                return BadRequest(ModelState);
             }
 
-            try
+            var admin = new Admin
             {
-                await admin1.AddAdmin(admin); // Ensure this method is awaited
-                await admin1.Save(); // Ensure this method is awaited
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the database.");
-            }
+                FullName = adminDTO.FullName,
+                Email = adminDTO.Email,
+                Password = adminDTO.Password
+            };
+            await admin1.AddAdmin(admin);
+            await admin1.Save();
+
+
 
             // Ensure GetAdminById is a valid action name in your controller
             return CreatedAtAction(nameof(GetAdminById), new { id = admin.AdminId }, admin);

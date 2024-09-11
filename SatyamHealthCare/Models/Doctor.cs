@@ -18,6 +18,11 @@ namespace SatyamHealthCare.Models
         public string PhoneNo { get; set; }
 
         [Required]
+        [EmailAddress]
+        [StringLength(100)]
+        public string Email { get; set; }
+
+        [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 

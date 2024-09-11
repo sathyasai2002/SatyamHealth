@@ -41,6 +41,7 @@ namespace SatyamHealthCare.Repos
         public async Task<Doctor?> GetDoctorById(int id)
         {
             return await _context.Doctors
+                  .Include(d => d.Admin)
                 .Include(d => d.Specialization)
                 .Where(d => d.DoctorId == id)
                 .Select(d => new Doctor
@@ -49,7 +50,9 @@ namespace SatyamHealthCare.Repos
                     FullName = d.FullName,
                     Designation = d.Designation,
                     Experience = d.Experience,
-                    Specialization = d.Specialization
+                    Specialization = d.Specialization,
+                    Email = d.Email,
+                    Admin = d.Admin
                 })
                 .FirstOrDefaultAsync();
         }
@@ -57,6 +60,7 @@ namespace SatyamHealthCare.Repos
         public async Task UpdateDoctor(Doctor doctor)
         {
             _context.Entry(doctor).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteDoctor(int id)
@@ -64,7 +68,8 @@ namespace SatyamHealthCare.Repos
             var doctor = await _context.Doctors.FindAsync(id);
            
             _context.Doctors.Remove(doctor);
-            
+            await _context.SaveChangesAsync();
+
         }
     }
 

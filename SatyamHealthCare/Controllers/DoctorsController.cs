@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.DTO;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
+using SatyamHealthCare.Repos;
 
 namespace SatyamHealthCare.Controllers
 {
@@ -47,6 +50,7 @@ namespace SatyamHealthCare.Controllers
 
         // PUT: api/Doctors/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+       
         [HttpPut("{id}")]
         public async Task<IActionResult> PutDoctor(int id, Doctor doctor)
         {
@@ -74,30 +78,39 @@ namespace SatyamHealthCare.Controllers
 
             return NoContent();
         }
-
+        
         // POST: api/Doctors
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Doctor>> PostDoctor([FromBody] Doctor doctor)
+        public async Task<ActionResult<Doctor>> PostDoctor([FromBody] DoctorDTO doctorDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            var doctor = new Doctor
+            {
+                FullName = doctorDto.FullName,
+                PhoneNo = doctorDto.PhoneNo,
+                Email = doctorDto.Email,
+                Password = doctorDto.Password,
+                Designation = doctorDto.Designation,
+                Experience = doctorDto.Experience,
+                SpecializationID = doctorDto.SpecializationID,
+                Qualification = doctorDto.Qualification,
+                ProfilePicture = doctorDto.ProfilePicture,
+                AdminId = doctorDto.AdminId
+            };
+            await doctor1.AddDoctor(doctor);
 
-            try
-            {
-                var createdDoctor = await doctor1.AddDoctor(doctor);
-                return CreatedAtAction(nameof(PostDoctor), new { id = createdDoctor.DoctorId }, createdDoctor);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception or handle it as needed
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            
+            return Ok(new { message = "Doctor registered successfully", doctor });
+       
+          
         }
 
         // DELETE: api/Doctors/5
+       
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDoctor(int id)
         {

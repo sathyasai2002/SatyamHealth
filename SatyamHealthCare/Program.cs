@@ -1,5 +1,8 @@
+using System.Text;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.Repos;
@@ -27,6 +30,8 @@ namespace SatyamHealthCare
             builder.Services.AddScoped<IPrescription, PrescriptionService>();
             builder.Services.AddScoped<ITest, TestService>();
             builder.Services.AddScoped<IPrescribedTest, PrescribedTestService>();
+            builder.Services.AddScoped<ILogin, LoginCredService>();
+
 
 
             builder.Services.AddControllers()
@@ -34,7 +39,37 @@ namespace SatyamHealthCare
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    { 
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = false,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]))
+        };
+    });
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("DoctorPolicy", policy => policy.RequireRole("Doctor"));
+                options.AddPolicy("PatientPolicy", policy => policy.RequireRole("Patient"));
+            });
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    policy =>
+                    {
+                        policy.AllowAnyOrigin()
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+            });
             var app = builder.Build();
 
 
@@ -44,9 +79,9 @@ namespace SatyamHealthCare
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseCors("AllowAll");
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

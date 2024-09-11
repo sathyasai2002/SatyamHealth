@@ -19,6 +19,7 @@ namespace SatyamHealthCare.Models
         public DbSet<Test> Tests { get; set; }
         public DbSet<PrescribedTest> PrescribedTests { get; set; }
 
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

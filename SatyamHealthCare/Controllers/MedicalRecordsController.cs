@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.IRepos;
+using Microsoft.AspNetCore.Authorization;
 namespace SatyamHealthCare.Controllers
 {
     [Route("api/[controller]")]
@@ -21,6 +22,7 @@ namespace SatyamHealthCare.Controllers
             this.medicalRecord1 = medicalRecord1;
         }
         // GET: api/MedicalRecords
+        [Authorize(Roles = "Doctor")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MedicalRecord>>> GetMedicalRecords()
         {
@@ -28,6 +30,7 @@ namespace SatyamHealthCare.Controllers
             return Ok(medicalRecords);
         }
         // GET: api/MedicalRecords/5
+        [Authorize(Roles = "Patient,Doctor")]
         [HttpGet("{id}")]
         public async Task<ActionResult<MedicalRecord>> GetMedicalRecord(int id)
         {
@@ -40,6 +43,7 @@ namespace SatyamHealthCare.Controllers
         }
         // PUT: api/MedicalRecords/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "Doctor")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutMedicalRecord(int id, MedicalRecord medicalRecord)
         {
@@ -66,6 +70,8 @@ namespace SatyamHealthCare.Controllers
         }
         // POST: api/MedicalRecords
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+        [Authorize(Roles = "Doctor")]
         [HttpPost]
         public async Task<ActionResult<MedicalRecord>> PostMedicalRecord(MedicalRecord
        medicalRecord)
@@ -75,6 +81,7 @@ namespace SatyamHealthCare.Controllers
            medicalRecord);
         }
         // DELETE: api/MedicalRecords/5
+        [Authorize(Roles = "Doctor")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMedicalRecord(int id)
         {

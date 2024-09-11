@@ -31,7 +31,7 @@ namespace SatyamHealthCare.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Determine user type (implement your own logic here)
+            
             Role.UserType userType = DetermineUserType(loginCred.Email);
 
             var token = await _loginService.AuthenticateAsync(loginCred, userType);

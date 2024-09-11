@@ -13,7 +13,7 @@ using SatyamHealthCare.Repos;
 
 namespace SatyamHealthCare.Controllers
 {
-    [Authorize(Roles ="Doctor")]
+    
     [Route("api/[controller]")]
     [ApiController]
     public class DoctorsController : ControllerBase
@@ -28,14 +28,15 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/Doctors
+        [Authorize(Roles = "Admin,Patient")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctors()
         {
             var doctor =  await doctor1.GetAllDoctors();
             return Ok(doctor);
         }
-
         // GET: api/Doctors/5
+        [Authorize(Roles = "Admin,Patient")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Doctor>> GetDoctor(int id)
         {
@@ -51,7 +52,7 @@ namespace SatyamHealthCare.Controllers
 
         // PUT: api/Doctors/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-       
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutDoctor(int id, Doctor doctor)
         {
@@ -79,9 +80,10 @@ namespace SatyamHealthCare.Controllers
 
             return NoContent();
         }
-        
+
         // POST: api/Doctors
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<Doctor>> PostDoctor([FromBody] DoctorDTO doctorDto)
         {
@@ -111,7 +113,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // DELETE: api/Doctors/5
-       
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDoctor(int id)
         {

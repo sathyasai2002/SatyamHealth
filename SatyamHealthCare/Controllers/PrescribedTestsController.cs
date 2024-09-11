@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,8 @@ using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 namespace SatyamHealthCare.Controllers
 {
+    [Authorize(Roles = "Doctor")]
+
     [Route("api/[controller]")]
     [ApiController]
     public class PrescribedTestsController : ControllerBase

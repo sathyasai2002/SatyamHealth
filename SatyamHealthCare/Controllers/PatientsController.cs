@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ namespace SatyamHealthCare.Controllers
             _context = context;
             this.patient1 = patient1 ?? throw new ArgumentNullException(nameof(patient1));
         }
-
+      [Authorize(Roles = "Admin,Patient")]
         // GET: api/Patients
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
@@ -35,6 +36,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/Patients/5
+        [Authorize(Roles = "Admin,Doctor")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Patient>> GetPatient(int id)
         {
@@ -48,6 +50,8 @@ namespace SatyamHealthCare.Controllers
 
         // PUT: api/Patients/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "Patient")]
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPatient(int id, Patient patient)
         {
@@ -77,6 +81,8 @@ namespace SatyamHealthCare.Controllers
 
         // POST: api/Patients
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "Patient")]
+
         [HttpPost]
         public async Task<ActionResult<Patient>> PostPatient(PatientDTO patientDto)
         {
@@ -107,6 +113,8 @@ namespace SatyamHealthCare.Controllers
 
             // DELETE: api/Patients/5
             [HttpDelete("{id}")]
+        [Authorize(Roles = "Patient")]
+
         public async Task<IActionResult> DeletePatient(int id)
         {
             var patient = await patient1.GetPatientById(id);

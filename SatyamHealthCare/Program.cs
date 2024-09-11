@@ -9,6 +9,7 @@ using SatyamHealthCare.Constants;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.Repos;
+using Microsoft.Extensions.Logging;
 
 namespace SatyamHealthCare
 {
@@ -57,21 +58,18 @@ namespace SatyamHealthCare
                     ValidAudience = builder.Configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
                     ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     RoleClaimType = ClaimTypes.Role
                 };
+             
+
             });
 
             builder.Services.AddAuthorization();
             builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).AddEnvironmentVariables();
-           // builder.Services.AddAuthorization(options =>
-            //{
-                //options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
-               // options.AddPolicy("DoctorPolicy", policy => policy.RequireRole("Doctor"));
-             //   options.AddPolicy("PatientPolicy", policy => policy.RequireRole("Patient"));
-           // });
+         
 
             builder.Services.AddCors(options =>
             {
@@ -123,6 +121,8 @@ namespace SatyamHealthCare
             }
             app.UseCors();
             app.UseHttpsRedirection();
+            app.UseRouting();
+            
             app.UseAuthentication();
             app.UseAuthorization();
             IConfiguration configuration = app.Configuration;

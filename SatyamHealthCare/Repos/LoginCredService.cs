@@ -24,7 +24,7 @@ namespace SatyamHealthCare.Repos
 
         public async Task<string> AuthenticateAsync(LoginCred loginCred, Role.UserType userType)
         {
-            // Validate credentials based on userType
+            
             //object user = userType switch
               object user = null;
 
@@ -56,11 +56,13 @@ namespace SatyamHealthCare.Repos
             new Claim(ClaimTypes.Role, userType.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);  // Ensure this is not null
+            return tokenHandler.WriteToken(token);
         }
     }
 }

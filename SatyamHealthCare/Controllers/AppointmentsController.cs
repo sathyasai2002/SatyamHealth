@@ -26,8 +26,10 @@ namespace SatyamHealthCare.Controllers
             _context = context;
             this.appointment1 = appointment1;
         }
-        
+
         // GET: api/Appointments
+        [Authorize(Roles = "Doctor")]
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
         {
@@ -46,10 +48,11 @@ namespace SatyamHealthCare.Controllers
 
 
         // GET: api/Appointments/5
+        [Authorize(Roles = "Doctor,Patient")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Appointment>> GetAppointment(int id)
         {
-            var appointment = await appointment1.GetAppointmentById(id); // Adjust as needed
+            var appointment = await appointment1.GetAppointmentById(id);
 
             if (appointment == null)
             {
@@ -67,9 +70,11 @@ namespace SatyamHealthCare.Controllers
 
             return Ok(appointmentDto);
         }
-            // PUT: api/Appointments/5
-            // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-            [HttpPut("{id}")]
+        // PUT: api/Appointments/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "Doctor")]
+        [HttpPut("{id}")]
+
         public async Task<IActionResult> UpdateAppointment(int id, [FromBody] UpdateAppointmentDTO updateDto)
         {
             if (id != updateDto.AppointmentId)
@@ -77,7 +82,7 @@ namespace SatyamHealthCare.Controllers
                 return BadRequest();
             }
 
-            var updated = await appointment1.UpdateAppointment(id, updateDto); // Adjust as needed
+            var updated = await appointment1.UpdateAppointment(id, updateDto); 
 
             if (!updated)
             {
@@ -89,9 +94,9 @@ namespace SatyamHealthCare.Controllers
 
         // POST: api/Appointments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-      
-        [HttpPost]
         [Authorize(Roles = "Patient")]
+        [HttpPost]
+       
         public async Task<ActionResult<Appointment>> PostAppointment(AppointmentDTO appointmentDto)
         {
             if (appointmentDto == null)
@@ -102,11 +107,6 @@ namespace SatyamHealthCare.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }
-            var loggedInPatientId = int.Parse(User.FindFirstValue("PatientID")); // Extract from JWT claim
-            if (appointmentDto.PatientId != loggedInPatientId)
-            {
-                return Forbid(); // Return 403 Forbidden if the PatientId doesn't match
             }
 
             var appointment = new Appointment
@@ -129,10 +129,11 @@ namespace SatyamHealthCare.Controllers
         }
 
         // DELETE: api/Appointments/5
+        [Authorize(Roles = "Patient,Doctor")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAppointment(int id)
         {
-            var deleted = await appointment1.DeleteAppointment(id); // Adjust as needed
+            var deleted = await appointment1.DeleteAppointment(id); 
 
             if (!deleted)
             {

@@ -28,10 +28,10 @@ namespace SatyamHealthCare.Repos
             //object user = userType switch
               object user = null;
 
-          //  if (userType == UserType.Patient)
-         //   {
-            //    user = await _context.Patients.SingleOrDefaultAsync(p => p.Email == loginCred.Email && p.Password == loginCred.Password);
-          //  }
+            if (userType == UserType.Patient)
+            {
+                user = await _context.Patients.SingleOrDefaultAsync(p => p.Email == loginCred.Email && p.Password == loginCred.Password);
+            }
              if (userType == UserType.Doctor)
             {
                 user = await _context.Doctors.SingleOrDefaultAsync(d => d.Email == loginCred.Email && d.Password == loginCred.Password);
@@ -50,10 +50,10 @@ namespace SatyamHealthCare.Repos
             var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, loginCred.Email),
-                    new Claim(ClaimTypes.Role, userType.ToString()) // Correctly use userType.ToString()
+          Subject = new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.Email, loginCred.Email),
+            new Claim(ClaimTypes.Role, userType.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)

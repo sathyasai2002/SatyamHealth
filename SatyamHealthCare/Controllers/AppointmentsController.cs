@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -88,7 +89,9 @@ namespace SatyamHealthCare.Controllers
 
         // POST: api/Appointments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+      
         [HttpPost]
+        [Authorize(Roles = "Patient")]
         public async Task<ActionResult<Appointment>> PostAppointment(AppointmentDTO appointmentDto)
         {
             if (appointmentDto == null)
@@ -99,6 +102,11 @@ namespace SatyamHealthCare.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+            var loggedInPatientId = int.Parse(User.FindFirstValue("PatientID")); // Extract from JWT claim
+            if (appointmentDto.PatientId != loggedInPatientId)
+            {
+                return Forbid(); // Return 403 Forbidden if the PatientId doesn't match
             }
 
             var appointment = new Appointment

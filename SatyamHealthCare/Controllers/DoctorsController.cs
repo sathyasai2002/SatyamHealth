@@ -13,6 +13,7 @@ using SatyamHealthCare.Repos;
 
 namespace SatyamHealthCare.Controllers
 {
+    [Authorize(Roles ="Doctor")]
     [Route("api/[controller]")]
     [ApiController]
     public class DoctorsController : ControllerBase

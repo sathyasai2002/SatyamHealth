@@ -13,7 +13,7 @@ using SatyamHealthCare.Repos;
 
 namespace SatyamHealthCare.Controllers
 {
-    
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class AdminsController : ControllerBase
@@ -28,8 +28,10 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/Admins
-       
+
+        
         [HttpGet]
+       
         public async Task<ActionResult<IEnumerable<Admin>>> GetAdmins()
         {
            var reuslt= await admin1.GetAllAdmins();

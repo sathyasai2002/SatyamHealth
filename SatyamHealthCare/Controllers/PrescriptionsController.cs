@@ -9,10 +9,12 @@ using Microsoft.EntityFrameworkCore;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.DTO;
+using SatyamHealthCare.Repos;
+using System.Security.Claims;
 
 namespace SatyamHealthCare.Controllers
 {
-    [Authorize(Roles = "Doctor")]
+   
     [Route("api/[controller]")]
     [ApiController]
     public class PrescriptionsController : ControllerBase
@@ -32,7 +34,7 @@ namespace SatyamHealthCare.Controllers
         {
             var prescriptions = await prescription1.GetAllPrescriptionsAsync();
 
-            // Mapping Prescription to PrescriptionDTO
+            
             var prescriptionDtos = prescriptions.Select(p => new PrescriptionDTO
             {
                 PrescriptionID = p.PrescriptionID,
@@ -64,7 +66,7 @@ namespace SatyamHealthCare.Controllers
                 return NotFound();
             }
 
-            // Mapping Prescription to PrescriptionDTO
+            
             var prescriptionDto = new PrescriptionDTO
             {
                 PrescriptionID = prescription.PrescriptionID,
@@ -85,6 +87,51 @@ namespace SatyamHealthCare.Controllers
             return Ok(prescriptionDto);
         }
 
+        [Authorize(Roles = "Patient")]
+        [HttpGet ("Filter")]
+        public async Task<ActionResult<IEnumerable<PrescriptionDTO>>> GetAllPrescriptionsForParticularPatient()
+        {
+            // Extract the patientId from the JWT claims
+            var patientIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (patientIdClaim == null)
+            {
+                return Unauthorized("Patient ID not found in the token.");
+            }
+
+            if (!int.TryParse(patientIdClaim.Value, out int patientId))
+            {
+                return BadRequest("Invalid Patient ID.");
+            }
+
+           
+            var prescriptions = await _context.Prescriptions
+                .Include(p => p.MedicalRecord) 
+                .Where(p => p.MedicalRecord != null && p.MedicalRecord.PatientID == patientId)
+                .ToListAsync();
+
+            if (prescriptions == null || !prescriptions.Any())
+            {
+                return NotFound("No prescriptions found for this patient.");
+            }
+
+            var prescriptionDtos = prescriptions.Select(p => new PrescriptionDTO
+            {
+                PrescriptionID = p.PrescriptionID,
+                MedicineName = p.MedicineName,
+                NoOfDays = p.NoOfDays,
+                Dosage = p.Dosage,
+                BeforeAfterFood = p.BeforeAfterFood,
+                MedicalRecord = new MedicalRecordDTO
+                {
+                    RecordID = p.MedicalRecord.RecordID,
+                    PatientID = p.MedicalRecord.PatientID
+                }
+            }).ToList();
+
+            return Ok(prescriptionDtos);
+        }
+
+
         // PUT: api/Prescriptions/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPrescription(int id, PrescriptionDTO prescriptionDto)
@@ -94,7 +141,7 @@ namespace SatyamHealthCare.Controllers
                 return BadRequest();
             }
 
-            // Mapping PrescriptionDTO to Prescription
+            
             var prescription = new Prescription
             {
                 PrescriptionID = prescriptionDto.PrescriptionID,
@@ -138,7 +185,7 @@ namespace SatyamHealthCare.Controllers
 
             await prescription1.AddPrescriptionAsync(prescription);
 
-            // Mapping back to PrescriptionDTO for the response
+           
             prescriptionDto.PrescriptionID = prescription.PrescriptionID;
 
             return CreatedAtAction(nameof(GetPrescription), new { id = prescription.PrescriptionID }, prescriptionDto);

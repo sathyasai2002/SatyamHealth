@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SatyamHealthCare.Constants;
+using SatyamHealthCare.Exceptions;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -26,23 +27,35 @@ namespace SatyamHealthCare.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginCred loginCred)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return Unauthorized("Invalid Credentials");
+                }
+
+
+                Role.UserType userType = DetermineUserType(loginCred.Email);
+
+                var token = await _loginService.AuthenticateAsync(loginCred, userType);
+
+                if (string.IsNullOrEmpty(token))
+                {
+                    return Unauthorized("Invalid credentials");
+                }
+
+                return Ok(new { Token = token });
             }
-
-            
-            Role.UserType userType = DetermineUserType(loginCred.Email);
-
-            var token = await _loginService.AuthenticateAsync(loginCred, userType);
-
-            if (string.IsNullOrEmpty(token))
+            catch (AuthenticationFailedException ex)
             {
-                return Unauthorized("Invalid credentials");
+                return Unauthorized(ex.Message);
             }
-
-            return Ok(new { Token = token });
+            catch (Exception ex)
+            {
+                return Unauthorized("An error occurred during authentication.");
+            }
         }
+
 
         private Role.UserType DetermineUserType(string email)
         {
@@ -50,9 +63,10 @@ namespace SatyamHealthCare.Controllers
                 return Role.UserType.Doctor;
             if (email.Contains("admin"))
                 return Role.UserType.Admin;
-           return Role.UserType.Patient;
+            return Role.UserType.Patient;
         }
-     
 
     }
 }
+    
+

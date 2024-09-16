@@ -71,7 +71,6 @@ namespace SatyamHealthCare.Tests.Controllers
             Assert.AreEqual(doctor, okResult?.Value);
         }
 
-        // Unit Test for GetDoctor (Doctor Does Not Exist)
         [Test]
         public async Task GetDoctor_ReturnsNotFound_WhenDoctorDoesNotExist()
         {
@@ -84,8 +83,7 @@ namespace SatyamHealthCare.Tests.Controllers
             // Assert
             Assert.IsInstanceOf<NotFoundResult>(result.Result);
         }
-
-        // Unit Test for PostDoctor (Successful Creation)
+        
         [Test]
         public async Task PostDoctor_ReturnsOk_WhenDoctorIsCreated()
         {

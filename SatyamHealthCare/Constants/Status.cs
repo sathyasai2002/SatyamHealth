@@ -1,6 +1,6 @@
 ﻿namespace SatyamHealthCare.Constants
 {
-    public class Enum
+    public class Status
     {
         public enum AppointmentStatus
         {

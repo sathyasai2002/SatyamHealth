@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
+using SatyamHealthCare.Exceptions;
 
 namespace SatyamHealthCare.Repos
 {
-    public class DoctorService:IDoctor
+    public class DoctorService : IDoctor
 
     {
 
@@ -33,9 +34,16 @@ namespace SatyamHealthCare.Repos
         }
         public async Task<Doctor> AddDoctor(Doctor doctor)
         {
-            _context.Doctors.Add(doctor);
-            await _context.SaveChangesAsync();
-            return doctor;
+            try
+            {
+                _context.Doctors.Add(doctor);
+                await _context.SaveChangesAsync();
+                return doctor;
+            }
+            catch (Exception ex)
+            {
+                throw new EntityAddFailedException("Doctor", ex);
+            }
         }
 
         public async Task<Doctor?> GetDoctorById(int id)
@@ -59,21 +67,38 @@ namespace SatyamHealthCare.Repos
 
         public async Task UpdateDoctor(Doctor doctor)
         {
-            _context.Entry(doctor).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Entry(doctor).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new EntityUpdateFailedException("Doctor", doctor.DoctorId, ex);
+            }
         }
 
         public async Task DeleteDoctor(int id)
         {
-            var doctor = await _context.Doctors.FindAsync(id);
-           
-            _context.Doctors.Remove(doctor);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var doctor = await _context.Doctors.FindAsync(id);
+                if (doctor == null)
+                {
+                    throw new EntityNotFoundException("Doctor", id);
+                }
 
+                _context.Doctors.Remove(doctor);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new EntityDeleteFailedException("Doctor", id, ex);
+            }
         }
-    }
 
     }
+}
 
 
 

@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using static SatyamHealthCare.Constants.Enum;
+using static SatyamHealthCare.Constants.Status;
 
 namespace SatyamHealthCare.DTO
 {
@@ -9,7 +9,9 @@ namespace SatyamHealthCare.DTO
         [Required]
         public int DoctorId { get; set; }
         [Required]
-        public DateTime AppointmentDate { get; set; }
+        [DataType(DataType.Date)]
+        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
+        public DateTime? AppointmentDate { get; set; }
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
     }
 }

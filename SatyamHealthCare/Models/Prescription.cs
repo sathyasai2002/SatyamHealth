@@ -1,31 +1,31 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SatyamHealthCare.Models
-{
-    public class Prescription
+    namespace SatyamHealthCare.Models
     {
-        [Key]
-        public int PrescriptionID { get; set; }
+        public class Prescription
+        {
+            [Key]
+            public int PrescriptionID { get; set; }
 
-        [Required]
-        [MaxLength(255)]
-        public string MedicineName { get; set; }
+            [Required]
+            [MaxLength(255)]
+            public string MedicineName { get; set; }
 
-        [Required, MaxLength(255)]
-        public int NoOfDays { get; set; }   
+            [Required, MaxLength(255)]
+            public int NoOfDays { get; set; }   
 
-        [Required]
-        [MaxLength(50)]
-        public string Dosage { get; set; }
+            [Required]
+            [MaxLength(50)]
+            public string Dosage { get; set; }
 
-        [Required]
-        [MaxLength(10)]
-        public string BeforeAfterFood { get; set; }
+            [Required]
+            [MaxLength(10)]
+            public string BeforeAfterFood { get; set; }
 
-        public int? RecordID { get; set; }
+            public int? RecordID { get; set; }
 
         
-        public virtual MedicalRecord? MedicalRecord { get; set; }
+            public virtual MedicalRecord? MedicalRecord { get; set; }
+        }
     }
-}

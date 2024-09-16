@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.Exceptions;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 
@@ -28,22 +29,27 @@ namespace SatyamHealthCare.Repos
         // Add a new Patient
         public async Task<Patient> AddPatient(Patient patient)
         {
-            _context.Patients.Add(patient);
-            await _context.SaveChangesAsync();
-            return patient;
+            try
+            {
+                _context.Patients.Add(patient);
+                await _context.SaveChangesAsync();
+                return patient;
+            }
+            catch (Exception ex)
+            {
+                throw new EntityAddFailedException("Patient", ex);
+            }
         }
 
-        // Update an existing Patient
-        public async Task<Patient> UpdatePatient(Patient patient)
+            // Update an existing Patient
+            public async Task<Patient> UpdatePatient(Patient patient)
         {
-            // Detach existing patient if already being tracked
             var trackedEntity = _context.Patients.Local.FirstOrDefault(p => p.PatientID == patient.PatientID);
             if (trackedEntity != null)
             {
                 _context.Entry(trackedEntity).State = EntityState.Detached;
             }
 
-            // Proceed with updating the patient
             _context.Patients.Update(patient);
             await _context.SaveChangesAsync();
             return patient;

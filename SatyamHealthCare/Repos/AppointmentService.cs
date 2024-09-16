@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SatyamHealthCare.DTO;
+using SatyamHealthCare.Exceptions;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
+using SatyamHealthCare.Constants;
 
 namespace SatyamHealthCare.Repos
 {
@@ -33,19 +35,28 @@ namespace SatyamHealthCare.Repos
 
         public async Task<Appointment> AddAppointment(Appointment appointment)
         {
-            _context.Appointments.Add(appointment);
+            try
+            {
+                _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
             return appointment;
+            }
+            catch (Exception ex)
+            {
+                throw new EntityAddFailedException("Appointment", ex);
+            }
         }
 
         public async Task<bool> UpdateAppointment(int id, UpdateAppointmentDTO updateDto)
         {
-            var appointment = await _context.Appointments.FindAsync(id);
+            try
+            {
+                var appointment = await _context.Appointments.FindAsync(id);
 
             if (appointment == null)
             {
-                return false;
-            }
+                    throw new EntityNotFoundException("Appointment", id);
+                }
 
             
             appointment.DoctorId = updateDto.DoctorId;
@@ -56,16 +67,31 @@ namespace SatyamHealthCare.Repos
             await _context.SaveChangesAsync();
 
             return true;
+            }
+            catch (Exception ex)
+            {
+                throw new EntityUpdateFailedException("Appointment", id, ex);
+            }
         }
 
 
         public async Task<bool> DeleteAppointment(int id)
         {
-            var appointment = await _context.Appointments.FindAsync(id);
-            if (appointment == null) return false;
+            try
+            {
+                var appointment = await _context.Appointments.FindAsync(id);
+                if (appointment == null)
+                {
+                    throw new EntityNotFoundException("Appointment", id);
+                }
 
-            _context.Appointments.Remove(appointment);
-            return await _context.SaveChangesAsync() > 0;
+                _context.Appointments.Remove(appointment);
+                return await _context.SaveChangesAsync() > 0;
+            }
+            catch (Exception ex)
+            {
+                throw new EntityDeleteFailedException("Appointment", id, ex);
+            }
         }
 
         public async Task Save()
@@ -75,12 +101,44 @@ namespace SatyamHealthCare.Repos
 
 
 
+        public async Task<List<Appointment>> GetAppointmentsByDoctorId(int doctorId)
+        {
+            return await _context.Appointments
+                .Where(a => a.DoctorId == doctorId)
+                .Include(a => a.Patient)
+                .ToListAsync();
+        }
 
+         public async Task<List<Appointment>> GetFilteredAppointmentsByDoctorId(int doctorId, DateTime? startDate, DateTime? endDate, Status.AppointmentStatus? status)
+ {
+     var query = _context.Appointments
+         .Where(a => a.DoctorId == doctorId);
 
+         if (startDate.HasValue)
+         {
+         query = query.Where(a => a.AppointmentDate >= startDate.Value);
+         }
 
+     if (endDate.HasValue)
+     {
+         query = query.Where(a => a.AppointmentDate <= endDate.Value);
+     }
 
+     if (status.HasValue)
+     {
+         query = query.Where(a => a.Status == status.Value);
+     }
 
+     return await query
+         .Include(a => a.Patient)
+         .OrderBy(a => a.AppointmentDate)
+         .ToListAsync();
+ }
 
-
+       
     }
+
+
+
 }
+

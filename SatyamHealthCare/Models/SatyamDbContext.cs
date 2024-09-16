@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using static System.Net.Mime.MediaTypeNames;
 using System.Numerics;
+using SatyamHealthCare.Constants;
 
 namespace SatyamHealthCare.Models
 {
@@ -87,11 +88,17 @@ namespace SatyamHealthCare.Models
                 .WithOne(mr => mr.Prescription)
                 .HasForeignKey(mr => mr.PrescriptionID)
                  .OnDelete(DeleteBehavior.Restrict);
+
+         
         }
+
+
+
+    }
     }
 
         
 
     
-}
+
 

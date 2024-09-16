@@ -10,6 +10,7 @@ using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.Repos;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel;
 
 namespace SatyamHealthCare
 {
@@ -43,6 +44,13 @@ namespace SatyamHealthCare
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+            builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new SatyamHealthCare.Models.DateTimeConverter()); // Add the custom DateOnly converter
+    });
+
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -58,7 +66,7 @@ namespace SatyamHealthCare
                     ValidAudience = builder.Configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
                     ValidateIssuer = true,
-                    ValidateAudience = false,
+                    ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     RoleClaimType = ClaimTypes.Role

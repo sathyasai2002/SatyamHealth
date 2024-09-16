@@ -94,7 +94,7 @@ namespace SatyamHealthCare.Tests.Controllers
             Assert.IsInstanceOf<CreatedAtActionResult>(result.Result);
             var createdAtActionResult = result.Result as CreatedAtActionResult;
 
-            // Cast to Admin because the controller returns an Admin model
+      
             Assert.AreEqual(adminDto.FullName, ((Admin)createdAtActionResult.Value).FullName);
         }
 

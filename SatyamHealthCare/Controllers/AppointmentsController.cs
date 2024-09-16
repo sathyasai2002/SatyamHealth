@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.Constants;
 using SatyamHealthCare.DTO;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
@@ -29,11 +30,28 @@ namespace SatyamHealthCare.Controllers
 
         // GET: api/Appointments
         [Authorize(Roles = "Doctor")]
-
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
+        public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointments()
         {
-            var appointments = await appointment1.GetAllAppointments(); 
+           
+            var doctorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (doctorIdClaim == null)
+            {
+                return Unauthorized("Doctor ID not found in the token.");
+            }
+
+            if (!int.TryParse(doctorIdClaim.Value, out int doctorId))
+            {
+                return BadRequest("Invalid Doctor ID.");
+            }
+
+            var appointments = await appointment1.GetAppointmentsByDoctorId(doctorId);
+
+            if (appointments == null || !appointments.Any())
+            {
+                return NotFound("No appointments found for this doctor.");
+            }
+
             var appointmentDtos = appointments.Select(a => new AppointmentDTO
             {
                 AppointmentId = a.AppointmentId,
@@ -46,7 +64,7 @@ namespace SatyamHealthCare.Controllers
             return Ok(appointmentDtos);
         }
 
-
+ 
         // GET: api/Appointments/5
         [Authorize(Roles = "Doctor,Patient")]
         [HttpGet("{id}")]
@@ -94,6 +112,48 @@ namespace SatyamHealthCare.Controllers
 
         // POST: api/Appointments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "Doctor")]
+        [HttpGet("filtered")]
+        public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointmentsByFiltering(
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate,
+            [FromQuery] string statusString)
+        {
+            var doctorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (doctorIdClaim == null)
+            {
+                return Unauthorized("Doctor ID not found in the token.");
+            }
+
+            if (!int.TryParse(doctorIdClaim.Value, out int doctorId))
+            {
+                return BadRequest("Invalid Doctor ID.");
+            }
+
+            Status.AppointmentStatus? status = null;
+            if (!string.IsNullOrEmpty(statusString) && System.Enum.TryParse<Status.AppointmentStatus>(statusString, true, out var parsedStatus))
+            {
+                status = parsedStatus;
+            }
+
+            var appointments = await appointment1.GetFilteredAppointmentsByDoctorId(doctorId, startDate, endDate, status);
+
+            if (appointments == null || !appointments.Any())
+            {
+                return NotFound("No appointments found for this doctor with the given criteria.");
+            }
+
+            var appointmentDtos = appointments.Select(a => new AppointmentDTO
+            {
+                AppointmentId = a.AppointmentId,
+                PatientId = a.PatientId,
+                DoctorId = a.DoctorId,
+                AppointmentDate = a.AppointmentDate,
+                Status = a.Status
+            }).ToList();
+
+            return Ok(appointmentDtos);
+        }
         [Authorize(Roles = "Patient")]
         [HttpPost]
        

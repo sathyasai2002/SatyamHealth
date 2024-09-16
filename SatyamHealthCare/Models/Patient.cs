@@ -12,6 +12,7 @@ namespace SatyamHealthCare.Models
         public string FullName { get; set; }
 
         [Required]
+        [DataType(DataType.Date)]
         public DateTime DateOfBirth { get; set; }
 
         [Required]

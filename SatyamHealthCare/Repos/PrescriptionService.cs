@@ -6,7 +6,7 @@ namespace SatyamHealthCare.Repos
 {
     public class PrescriptionService : IPrescription
     {
-        private readonly SatyamDbContext _context; // Replace with your actual DbContext class
+        private readonly SatyamDbContext _context; 
         public PrescriptionService(SatyamDbContext context)
         {
             _context = context;
@@ -15,6 +15,15 @@ namespace SatyamHealthCare.Repos
         {
             return await _context.Prescriptions.ToListAsync();
         }
+        public async Task<Prescription?> GetPrescriptionById(int id, int patientId)
+        {
+            // Ensure that the prescription belongs to the logged-in patient
+            return await _context.Prescriptions
+                .Include(p => p.MedicalRecord)
+                .FirstOrDefaultAsync(p => p.PrescriptionID == id && p.MedicalRecord.PatientID == patientId);
+        }
+
+
         public async Task<Prescription> GetPrescriptionByIdAsync(int id)
         {
             return await _context.Prescriptions.FindAsync(id);

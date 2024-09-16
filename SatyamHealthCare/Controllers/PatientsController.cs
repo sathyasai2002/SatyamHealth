@@ -20,13 +20,13 @@ namespace SatyamHealthCare.Controllers
         private readonly SatyamDbContext _context;
         private readonly IPatient patient1;
 
-        public PatientsController(SatyamDbContext context,IPatient patient1
-            )
+        public PatientsController(SatyamDbContext context,IPatient patient1)
+            
         {
             _context = context;
             this.patient1 = patient1 ?? throw new ArgumentNullException(nameof(patient1));
         }
-      [Authorize(Roles = "Admin,Patient")]
+      [Authorize(Roles = "Admin")]
         // GET: api/Patients
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()

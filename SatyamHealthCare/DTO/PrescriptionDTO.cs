@@ -22,6 +22,6 @@ namespace SatyamHealthCare.DTO
         [MaxLength(10)]
         public string BeforeAfterFood { get; set; }
 
-       public MedicalRecordDTO? MedicalRecord { get; set; }
+      public MedicalRecordDTO? MedicalRecord { get; set; }
     }
 }

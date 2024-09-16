@@ -4,12 +4,15 @@ namespace SatyamHealthCare.DTO
 {
     public class MedicalRecordDTO
     {
+
+
         [Required]
         public int PatientID { get; set; }
 
         [Required]
         public int DoctorID { get; set; }
-
+        
+        public int RecordID { get; set; }
         [Required]
         public DateTime ConsultationDateTime { get; set; }
 

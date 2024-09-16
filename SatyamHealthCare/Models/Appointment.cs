@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 using System.Numerics;
-using static SatyamHealthCare.Constants.Enum;
+using static SatyamHealthCare.Constants.Status;
 
 namespace SatyamHealthCare.Models
 {
@@ -19,7 +19,9 @@ namespace SatyamHealthCare.Models
         public virtual Doctor? Doctor { get; set; } 
 
         [Required]
-        public DateTime AppointmentDate { get; set; }
+        [DataType(DataType.Date)]
+        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
+        public DateTime? AppointmentDate { get; set; }
 
         [Required]
         [DefaultValue(AppointmentStatus.Pending)]

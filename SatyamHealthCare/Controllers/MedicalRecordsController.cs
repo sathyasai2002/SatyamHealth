@@ -7,6 +7,7 @@ using SatyamHealthCare.DTO;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.IRepos;
 using Microsoft.AspNetCore.Authorization;
+using SatyamHealthCare.Exceptions;
 namespace SatyamHealthCare.Controllers
 {
     [Route("api/[controller]")]
@@ -28,6 +29,11 @@ namespace SatyamHealthCare.Controllers
         public async Task<ActionResult<IEnumerable<MedicalRecordDTO>>> GetMedicalRecords()
         {
             var medicalRecords = await medicalRecord1.GetAllMedicalRecordsAsync();
+
+            if (medicalRecords == null || !medicalRecords.Any())
+            {
+                throw new MedicalRecordNotFoundException("No medical records found.");
+            }
 
             // Map MedicalRecord to MedicalRecordDTO
             var medicalRecordDtos = medicalRecords.Select(mr => new MedicalRecordDTO
@@ -52,7 +58,7 @@ namespace SatyamHealthCare.Controllers
 
             if (medicalRecord == null)
             {
-                return NotFound();
+                throw new MedicalRecordNotFoundException($"Medical record with ID {id} not found.");
             }
 
             // Map MedicalRecord to MedicalRecordDTO
@@ -77,7 +83,7 @@ namespace SatyamHealthCare.Controllers
         {
             if (id != medicalRecordDto.PrescriptionID)
             {
-                return BadRequest();
+                throw new ArgumentException("Provided medical record ID does not match the request.");
             }
 
             // Map MedicalRecordDTO to MedicalRecord
@@ -99,11 +105,11 @@ namespace SatyamHealthCare.Controllers
             {
                 if (!MedicalRecordExists(id))
                 {
-                    return NotFound();
+                    throw new MedicalRecordNotFoundException($"Medical record with ID {id} not found.");
                 }
                 else
                 {
-                    throw;
+                    throw new Exception("An error occurred while updating the medical record.");
                 }
             }
 
@@ -150,7 +156,7 @@ namespace SatyamHealthCare.Controllers
 
             if (medicalRecord == null)
             {
-                return NotFound();
+                throw new MedicalRecordNotFoundException($"Medical record with ID {id} not found.");
             }
 
             await medicalRecord1.DeleteMedicalRecordAsync(id);

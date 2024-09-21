@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SatyamHealthCare.Models;
 
@@ -11,9 +12,11 @@ using SatyamHealthCare.Models;
 namespace SatyamHealthCare.Migrations
 {
     [DbContext(typeof(SatyamDbContext))]
-    partial class SatyamDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240921060757_final 1")]
+    partial class final1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,10 +63,6 @@ namespace SatyamHealthCare.Migrations
                     b.Property<DateTime?>("AppointmentDate")
                         .IsRequired()
                         .HasColumnType("datetime2");
-
-                    b.Property<TimeSpan?>("AppointmentTime")
-                        .IsRequired()
-                        .HasColumnType("time");
 
                     b.Property<int>("DoctorId")
                         .HasColumnType("int");

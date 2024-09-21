@@ -11,6 +11,7 @@ using SatyamHealthCare.Models;
 using SatyamHealthCare.DTO;
 using SatyamHealthCare.Repos;
 using System.Security.Claims;
+using SatyamHealthCare.Exceptions;
 
 namespace SatyamHealthCare.Controllers
 {
@@ -59,32 +60,39 @@ namespace SatyamHealthCare.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<PrescriptionDTO>> GetPrescription(int id)
         {
-            var prescription = await prescription1.GetPrescriptionByIdAsync(id);
-
-            if (prescription == null)
+            try
             {
-                return NotFound();
-            }
+                var prescription = await prescription1.GetPrescriptionByIdAsync(id);
 
-            
-            var prescriptionDto = new PrescriptionDTO
-            {
-                PrescriptionID = prescription.PrescriptionID,
-                MedicineName = prescription.MedicineName,
-                NoOfDays = prescription.NoOfDays,
-                Dosage = prescription.Dosage,
-                BeforeAfterFood = prescription.BeforeAfterFood,
-                MedicalRecord = prescription.MedicalRecord != null ? new MedicalRecordDTO
+                if (prescription == null)
                 {
-                    PatientID = prescription.MedicalRecord.PatientID,
-                    DoctorID = prescription.MedicalRecord.DoctorID,
-                    ConsultationDateTime = prescription.MedicalRecord.ConsultationDateTime,
-                    Diagnosis = prescription.MedicalRecord.Diagnosis,
-                    PrescriptionID = prescription.MedicalRecord.PrescriptionID
-                } : null
-            };
+                    throw new PrescriptionNotFoundException($"Prescription with ID {id} was not found.");
+                }
 
-            return Ok(prescriptionDto);
+                var prescriptionDto = new PrescriptionDTO
+                {
+                    PrescriptionID = prescription.PrescriptionID,
+                    MedicineName = prescription.MedicineName,
+                    NoOfDays = prescription.NoOfDays,
+                    Dosage = prescription.Dosage,
+                    BeforeAfterFood = prescription.BeforeAfterFood,
+                    MedicalRecord = prescription.MedicalRecord != null ? new MedicalRecordDTO
+                    {
+                        PatientID = prescription.MedicalRecord.PatientID,
+                        DoctorID = prescription.MedicalRecord.DoctorID,
+                        ConsultationDateTime = prescription.MedicalRecord.ConsultationDateTime,
+                        Diagnosis = prescription.MedicalRecord.Diagnosis,
+                        PrescriptionID = prescription.MedicalRecord.PrescriptionID
+                    } : null
+                };
+
+                return Ok(prescriptionDto);
+            }
+            catch (PrescriptionNotFoundException ex)
+            {
+                // Return a NotFound response with the exception message
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [Authorize(Roles = "Patient")]
@@ -138,36 +146,37 @@ namespace SatyamHealthCare.Controllers
         {
             if (id != prescriptionDto.PrescriptionID)
             {
-                return BadRequest();
+                return BadRequest("Prescription ID mismatch.");
             }
 
-            
-            var prescription = new Prescription
-            {
-                PrescriptionID = prescriptionDto.PrescriptionID,
-                MedicineName = prescriptionDto.MedicineName,
-                NoOfDays = prescriptionDto.NoOfDays,
-                Dosage = prescriptionDto.Dosage,
-                BeforeAfterFood = prescriptionDto.BeforeAfterFood
-            };
 
             try
             {
-                await prescription1.UpdatePrescriptionAsync(prescription);
+                var prescription = await prescription1.GetPrescriptionByIdAsync(id);
+
+                if (prescription == null)
+                {
+                    throw new PrescriptionNotFoundException($"Prescription with ID {id} was not found.");
+                }
+
+                var updatedPrescription = new Prescription
+                {
+                    PrescriptionID = prescriptionDto.PrescriptionID,
+                    MedicineName = prescriptionDto.MedicineName,
+                    NoOfDays = prescriptionDto.NoOfDays,
+                    Dosage = prescriptionDto.Dosage,
+                    BeforeAfterFood = prescriptionDto.BeforeAfterFood
+                };
+
+                await prescription1.UpdatePrescriptionAsync(updatedPrescription);
+
+                return NoContent();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (PrescriptionNotFoundException ex)
             {
-                if (!await PrescriptionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound(new { message = ex.Message });
             }
 
-            return NoContent();
         }
 
         // POST: api/Prescriptions
@@ -195,15 +204,23 @@ namespace SatyamHealthCare.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePrescription(int id)
         {
-            var prescription = await prescription1.GetPrescriptionByIdAsync(id);
-            if (prescription == null)
+            try
             {
-                return NotFound();
+                var prescription = await prescription1.GetPrescriptionByIdAsync(id);
+
+                if (prescription == null)
+                {
+                    throw new PrescriptionNotFoundException($"Prescription with ID {id} was not found.");
+                }
+
+                await prescription1.DeletePrescriptionAsync(id);
+
+                return NoContent();
             }
-
-            await prescription1.DeletePrescriptionAsync(id);
-
-            return NoContent();
+            catch (PrescriptionNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         private async Task<bool> PrescriptionExists(int id)

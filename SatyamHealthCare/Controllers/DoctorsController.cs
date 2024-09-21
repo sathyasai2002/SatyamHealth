@@ -10,6 +10,7 @@ using SatyamHealthCare.DTO;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.Repos;
+using SatyamHealthCare.Exceptions;
 
 namespace SatyamHealthCare.Controllers
 {
@@ -44,7 +45,7 @@ namespace SatyamHealthCare.Controllers
 
             if (doctor == null)
             {
-                return NotFound();
+                throw new DoctorNotFoundException($"Doctor with ID {id} not found.");
             }
 
             return Ok(doctor);
@@ -58,7 +59,7 @@ namespace SatyamHealthCare.Controllers
         {
             if (id != doctor.DoctorId)
             {
-                return BadRequest();
+                throw new ArgumentException("Provided doctor ID does not match the request.");
             }
             doctor1.UpdateDoctor(doctor);
 
@@ -70,11 +71,11 @@ namespace SatyamHealthCare.Controllers
             {
                 if (!DoctorExists(id))
                 {
-                    return NotFound();
+                    throw new DoctorNotFoundException($"Doctor with ID {id} not found.");
                 }
                 else
                 {
-                    throw;
+                    throw new Exception("An error occurred while updating the doctor.");
                 }
             }
 
@@ -121,7 +122,7 @@ namespace SatyamHealthCare.Controllers
             var doctor = await doctor1.GetDoctorById(id);
             if (doctor == null)
             {
-                return NotFound();
+                throw new DoctorNotFoundException($"Doctor with ID {id} not found.");
             }
 
             await doctor1.DeleteDoctor(id);

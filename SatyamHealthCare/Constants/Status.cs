@@ -7,7 +7,8 @@
             Pending,
             Confirmed,
             Rescheduled,
-            Rejected
+            Rejected,
+            Cancelled
         }
     }
 }

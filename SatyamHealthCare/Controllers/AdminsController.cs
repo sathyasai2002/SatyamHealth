@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SatyamHealthCare.DTO;
+using SatyamHealthCare.Exceptions;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.Repos;
@@ -42,14 +43,21 @@ namespace SatyamHealthCare.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Admin>> GetAdminById(int id)
         {
-            var result = await admin1.GetAdminById(id);
-
-            if (result == null)
+            try
             {
-                return NotFound();
-            }
+                var result = await admin1.GetAdminById(id);
 
-            return Ok(result);
+                if (result == null)
+                {
+                    throw new AdminNotFoundException($"Admin with ID {id} not found.");
+                }
+
+                return Ok(result);
+            }
+            catch (AdminNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
         }
 
         // PUT: api/Admins/5
@@ -64,25 +72,33 @@ namespace SatyamHealthCare.Controllers
             }
 
             // _context.Entry(admin).State = EntityState.Modified;
-            admin1.UpdateAdmin(admin);
 
             try
             {
+                admin1.UpdateAdmin(admin);
                 await admin1.Save();
+
+                return Ok(admin);
             }
             catch (DbUpdateConcurrencyException)
             {
                 if (!AdminExists(id))
                 {
-                    return NotFound();
+                    throw new AdminNotFoundException($"Admin with ID {id} not found.");
                 }
                 else
                 {
-                    throw;
+                    throw new AdminUpdateException($"Concurrency issue occurred while updating Admin with ID {id}.");
                 }
             }
-
-            return Ok(admin);
+            catch (AdminNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (AdminUpdateException ex)
+            {
+                return StatusCode(StatusCodes.Status409Conflict, new { Message = ex.Message });
+            }
         }
         // POST: api/Admins
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -114,19 +130,31 @@ namespace SatyamHealthCare.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAdmin(int id)
         {
-            var admin = await admin1.GetAdminById(id);
-            if (admin == null)
+            try
             {
-                return NotFound();
-            }
+                var admin = await admin1.GetAdminById(id);
 
-            bool deleted = await admin1.DeleteAdmin(id);
-            if (!deleted)
+                if (admin == null)
+                {
+                    throw new AdminNotFoundException($"Admin with ID {id} not found.");
+                }
+
+                bool deleted = await admin1.DeleteAdmin(id);
+                if (!deleted)
+                {
+                    throw new AdminDeleteException($"Error occurred while deleting Admin with ID {id}.");
+                }
+
+                return NoContent();
+            }
+            catch (AdminNotFoundException ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while deleting the admin.");
+                return NotFound(new { Message = ex.Message });
             }
-
-            return NoContent();
+            catch (AdminDeleteException ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = ex.Message });
+            }
         }
 
 

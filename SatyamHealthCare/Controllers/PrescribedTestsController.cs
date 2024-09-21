@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.DTO;
+using SatyamHealthCare.Exceptions;
 
 namespace SatyamHealthCare.Controllers
 {
@@ -33,6 +34,11 @@ namespace SatyamHealthCare.Controllers
         {
             var prescribedTests = await prescribedTest1.GetAllPrescribedTestsAsync();
 
+            if (prescribedTests == null || !prescribedTests.Any())
+            {
+                throw new PrescribedTestNotFoundException("No prescribed tests found.");
+            }
+
             // Mapping PrescribedTest to PrescribedTestDTO
             var prescribedTestDtos = prescribedTests.Select(pt => new PrescribedTestDTO
             {
@@ -54,7 +60,7 @@ namespace SatyamHealthCare.Controllers
 
             if (prescribedTest == null)
             {
-                return NotFound();
+                throw new PrescribedTestNotFoundException($"Prescribed test with ID {id} not found.");
             }
 
             // Mapping PrescribedTest to PrescribedTestDTO
@@ -76,7 +82,7 @@ namespace SatyamHealthCare.Controllers
         {
             if (id != prescribedTestDto.PrescribedTestID)
             {
-                return BadRequest();
+                throw new ArgumentException("Provided prescribed test ID does not match the request.");
             }
 
             // Mapping PrescribedTestDTO to PrescribedTest
@@ -96,11 +102,11 @@ namespace SatyamHealthCare.Controllers
             {
                 if (!await PrescribedTestExists(id))
                 {
-                    return NotFound();
+                    throw new PrescribedTestNotFoundException($"Prescribed test with ID {id} not found.");
                 }
                 else
                 {
-                    throw;
+                    throw new Exception("An error occurred while updating the prescribed test.");
                 }
             }
 
@@ -134,7 +140,7 @@ namespace SatyamHealthCare.Controllers
             var prescribedTest = await prescribedTest1.GetPrescribedTestByIdAsync(id);
             if (prescribedTest == null)
             {
-                return NotFound();
+                throw new PrescribedTestNotFoundException($"Prescribed test with ID {id} not found.");
             }
 
             await prescribedTest1.DeletePrescribedTestAsync(id);

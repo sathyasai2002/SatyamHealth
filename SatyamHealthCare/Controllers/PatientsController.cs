@@ -10,6 +10,7 @@ using SatyamHealthCare.DTO;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.Repos;
+using SatyamHealthCare.Exceptions;
 
 namespace SatyamHealthCare.Controllers
 {
@@ -43,8 +44,9 @@ namespace SatyamHealthCare.Controllers
             var patient = await patient1.GetPatientById(id);
             if (patient == null)
             {
-                return NotFound();
+                throw new PatientNotFoundException($"Patient with ID {id} not found.");
             }
+
             return Ok(patient);
         }
 
@@ -57,7 +59,7 @@ namespace SatyamHealthCare.Controllers
         {
             if (id != patient.PatientID)
             {
-                return BadRequest();
+                throw new ArgumentException("Provided patient ID does not match the request.");
             }
 
             try
@@ -68,11 +70,11 @@ namespace SatyamHealthCare.Controllers
             {
                 if (!PatientExists(id))
                 {
-                    return NotFound();
+                    throw new PatientNotFoundException($"Patient with ID {id} not found.");
                 }
                 else
                 {
-                    throw;
+                    throw new Exception("An error occurred while updating the patient.");
                 }
             }
 
@@ -120,13 +122,13 @@ namespace SatyamHealthCare.Controllers
             var patient = await patient1.GetPatientById(id);
             if (patient == null)
             {
-                return NotFound();
+                throw new PatientNotFoundException($"Patient with ID {id} not found.");
             }
 
             var deleteResult = await patient1.DeletePatient(id);
             if (!deleteResult)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting patient");
+                throw new Exception("An error occurred while deleting the patient.");
             }
 
             return NoContent();

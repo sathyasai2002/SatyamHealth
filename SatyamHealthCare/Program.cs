@@ -36,7 +36,9 @@ namespace SatyamHealthCare
             builder.Services.AddScoped<ITest, TestService>();
             builder.Services.AddScoped<IPrescribedTest, PrescribedTestService>();
             builder.Services.AddScoped<ILogin, LoginCredService>();
-
+            builder.Services.AddTransient<IEmailService, EmailService>();
+            builder.Services.AddTransient<ISmsService, SmsService>();
+            builder.Services.AddTransient<INotificationService, NotificationService>();
 
 
             builder.Services.AddControllers()
@@ -47,7 +49,7 @@ namespace SatyamHealthCare
             builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(new SatyamHealthCare.Models.DateTimeConverter()); // Add the custom DateOnly converter
+        options.JsonSerializerOptions.Converters.Add(new SatyamHealthCare.Models.DateTimeConverter());
     });
 
 
@@ -71,13 +73,13 @@ namespace SatyamHealthCare
                     ValidateIssuerSigningKey = true,
                     RoleClaimType = ClaimTypes.Role
                 };
-             
+
 
             });
 
             builder.Services.AddAuthorization();
             builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).AddEnvironmentVariables();
-         
+
 
             builder.Services.AddCors(options =>
             {
@@ -117,6 +119,10 @@ namespace SatyamHealthCare
                     }
                 });
             });
+            builder.Services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+            });
 
             var app = builder.Build();
 
@@ -130,7 +136,7 @@ namespace SatyamHealthCare
             app.UseCors();
             app.UseHttpsRedirection();
             app.UseRouting();
-            
+
             app.UseAuthentication();
             app.UseAuthorization();
             IConfiguration configuration = app.Configuration;

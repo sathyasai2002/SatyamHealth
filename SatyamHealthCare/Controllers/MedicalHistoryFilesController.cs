@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.Exceptions;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 namespace SatyamHealthCare.Controllers
@@ -37,7 +38,7 @@ namespace SatyamHealthCare.Controllers
             var medicalHistoryFile = await medicalHistoryFile1.GetMedicalHistoryFileById(id);
             if (medicalHistoryFile == null)
             {
-                return NotFound();
+                throw new MedicalHistoryFileNotFoundException($"Medical history file with ID {id} not found.");
             }
             return Ok(medicalHistoryFile);
         }
@@ -50,7 +51,7 @@ namespace SatyamHealthCare.Controllers
            medicalHistoryFile1.GetMedicalHistoryFilesByPatientId(patientId);
             if (medicalHistoryFiles == null)
             {
-                return NotFound();
+                throw new MedicalHistoryFileNotFoundException($"No medical history files found for patient ID {patientId}.");
             }
             return Ok(medicalHistoryFiles);
         }
@@ -62,12 +63,12 @@ namespace SatyamHealthCare.Controllers
         {
             if (id != medicalHistoryFile.MedicalHistoryId)
             {
-                return BadRequest();
+                throw new ArgumentException("The provided medical history file ID does not match the requested resource.");
             }
             var existingMedicalHistoryFile = await medicalHistoryFile1.GetMedicalHistoryFileById(id);
             if (existingMedicalHistoryFile == null)
             {
-                return NotFound();
+                throw new MedicalHistoryFileNotFoundException($"Medical history file with ID {id} not found.");
             }
             await medicalHistoryFile1.UpdateMedicalHistoryFile(medicalHistoryFile);
             return NoContent();
@@ -81,8 +82,7 @@ namespace SatyamHealthCare.Controllers
             await medicalHistoryFile1.AddMedicalHistoryFile(medicalHistoryFile);
             return CreatedAtAction(nameof(GetMedicalHistoryFile), new
             {
-                id =
-           medicalHistoryFile.MedicalHistoryId
+                id = medicalHistoryFile.MedicalHistoryId
             }, medicalHistoryFile);
         }
         // DELETE: api/MedicalHistoryFiles1/5
@@ -92,7 +92,7 @@ namespace SatyamHealthCare.Controllers
             var medicalHistoryFile = await medicalHistoryFile1.GetMedicalHistoryFileById(id);
             if (medicalHistoryFile == null)
             {
-                return NotFound();
+                throw new MedicalHistoryFileNotFoundException($"Medical history file with ID {id} not found.");
             }
             await medicalHistoryFile1.DeleteMedicalHistoryFile(id);
             return NoContent();

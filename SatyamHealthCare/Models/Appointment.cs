@@ -24,6 +24,11 @@ namespace SatyamHealthCare.Models
         public DateTime? AppointmentDate { get; set; }
 
         [Required]
+        [DataType(DataType.Time)]
+        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:hh\\:mm}")]
+        public TimeSpan? AppointmentTime { get; set; }
+
+        [Required]
         [DefaultValue(AppointmentStatus.Pending)]
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
     }

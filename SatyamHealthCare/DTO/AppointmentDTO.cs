@@ -18,6 +18,11 @@ namespace SatyamHealthCare.DTO
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
         public DateTime? AppointmentDate { get; set; }
 
+        [Required]
+        [DataType(DataType.Time)]
+        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:hh\\:mm}")]
+        public TimeSpan? AppointmentTime { get; set; }
+
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
     }
 }

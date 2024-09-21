@@ -44,7 +44,11 @@ namespace SatyamHealthCare.Controllers
                     return Unauthorized("Invalid credentials");
                 }
 
-                return Ok(new { Token = token });
+
+                string emailInitial = loginCred.Email.Length > 0 ? loginCred.Email[0].ToString().ToUpper() : "";
+
+                return Ok(new { Token = token, EmailInitial = emailInitial });
+
             }
             catch (AuthenticationFailedException ex)
             {

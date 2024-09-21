@@ -13,6 +13,8 @@ namespace SatyamHealthCare.Models
 
         [Required]
         [DataType(DataType.Date)]
+        
+        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
         public DateTime DateOfBirth { get; set; }
 
         [Required]

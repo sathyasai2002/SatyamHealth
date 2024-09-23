@@ -83,14 +83,18 @@ namespace SatyamHealthCare
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll",
+                options.AddPolicy("AllowReact",
                     policy =>
                     {
-                        policy.AllowAnyOrigin()
+                        policy.WithOrigins("http://localhost:5173") 
                               .AllowAnyHeader()
-                              .AllowAnyMethod();
+                              .AllowAnyMethod()
+                              .AllowCredentials();
                     });
             });
+
+          
+
 
             builder.Services.AddSwaggerGen(options =>
             {
@@ -121,9 +125,10 @@ namespace SatyamHealthCare
             });
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
-                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                // options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                options.JsonSerializerOptions.ReferenceHandler = null;
             });
-
+     
             var app = builder.Build();
 
 
@@ -133,7 +138,7 @@ namespace SatyamHealthCare
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            app.UseCors();
+            app.UseCors("AllowReact");
             app.UseHttpsRedirection();
             app.UseRouting();
 

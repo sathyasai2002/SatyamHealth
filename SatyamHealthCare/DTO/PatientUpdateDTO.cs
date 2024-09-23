@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Drawing;
 
 namespace SatyamHealthCare.DTO
 {
-    public class PatientDTO
+    public class PatientUpdateDTO
     {
         public int PatientID { get; set; }
         [Required]
@@ -10,6 +11,9 @@ namespace SatyamHealthCare.DTO
         public string FullName { get; set; }
 
         [Required]
+        [DataType(DataType.Date)]
+
+        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
         public DateTime DateOfBirth { get; set; }
 
         [Required]
@@ -25,7 +29,6 @@ namespace SatyamHealthCare.DTO
         public string ContactNumber { get; set; }
 
         [MaxLength(255)]
-        [EmailAddress]
         public string Email { get; set; }
 
         [MaxLength(500)]
@@ -38,11 +41,5 @@ namespace SatyamHealthCare.DTO
         public string City { get; set; }
         [MaxLength(255)]
         public string State { get; set; }
-
-        [Required]
-        [MaxLength(255)]
-        public string? Password { get; set; }
-
-       // public byte[]? ProfilePicture { get; set; }
     }
 }

@@ -67,6 +67,7 @@ namespace SatyamHealthCare.Repos
                 {
                     new Claim(ClaimTypes.Email, loginCred.Email),
                     new Claim(ClaimTypes.Role, userType.ToString())
+
                 };
 
                 if (doctorId.HasValue)
@@ -77,6 +78,7 @@ namespace SatyamHealthCare.Repos
                 {
                     claims.Add(new Claim(ClaimTypes.NameIdentifier, patientId.Value.ToString()));
                     claims.Add(new Claim("PatientId", patientId.Value.ToString()));
+                    
 
                 }
                     var tokenDescriptor = new SecurityTokenDescriptor

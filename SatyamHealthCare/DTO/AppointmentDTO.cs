@@ -6,7 +6,7 @@ namespace SatyamHealthCare.DTO
     public class AppointmentDTO
     {
 
-        public int AppointmentId {  get; set; }
+        public int AppointmentId { get; set; }
         [Required]
         public int PatientId { get; set; }
 
@@ -22,6 +22,7 @@ namespace SatyamHealthCare.DTO
         [DataType(DataType.Time)]
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:hh\\:mm}")]
         public TimeSpan? AppointmentTime { get; set; }
+        public string? DoctorName { get; set; }
 
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
     }

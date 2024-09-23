@@ -15,4 +15,12 @@ namespace SatyamHealthCare.Exceptions
         {
         }
     }
+
+    public class InvalidPatientException : Exception
+    {
+        public InvalidPatientException(string message) : base(message) { }
+    }
+
+
+
 }

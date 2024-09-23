@@ -93,6 +93,9 @@ namespace SatyamHealthCare
                     });
             });
 
+          
+
+
             builder.Services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "User_Api", Version = "v1" });
@@ -122,9 +125,10 @@ namespace SatyamHealthCare
             });
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
-                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                // options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                options.JsonSerializerOptions.ReferenceHandler = null;
             });
-
+     
             var app = builder.Build();
 
 

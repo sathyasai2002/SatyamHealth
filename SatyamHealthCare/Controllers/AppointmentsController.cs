@@ -287,7 +287,7 @@ namespace SatyamHealthCare.Controllers
                 return BadRequest(ModelState);
             }
 
-            
+
             bool isTimeSlotTaken = await _context.Appointments
                 .AnyAsync(a => a.DoctorId == appointmentDto.DoctorId &&
                                a.AppointmentDate == appointmentDto.AppointmentDate &&
@@ -295,26 +295,26 @@ namespace SatyamHealthCare.Controllers
 
             if (isTimeSlotTaken)
             {
-                
+
                 return Conflict(new { Message = "The selected time slot is already booked for this doctor." });
             }
 
-            
+
             var appointment = new Appointment
             {
                 PatientId = appointmentDto.PatientId,
                 DoctorId = appointmentDto.DoctorId,
                 AppointmentDate = appointmentDto.AppointmentDate,
-                AppointmentTime = appointmentDto.AppointmentTime, 
+                AppointmentTime = appointmentDto.AppointmentTime,
                 Status = appointmentDto.Status
             };
 
             try
             {
-                
+
                 var createdAppointment = await appointment1.AddAppointment(appointment);
 
-                
+
                 var patient = await _context.Patients.FindAsync(appointmentDto.PatientId);
                 var doctor = await _context.Doctors.FindAsync(appointmentDto.DoctorId);
 
@@ -326,7 +326,7 @@ namespace SatyamHealthCare.Controllers
                         patient.FullName,
                         doctor.FullName,
                         createdAppointment.AppointmentDate ?? DateTime.Now,
-                        createdAppointment.AppointmentTime ?? TimeSpan.Zero 
+                        createdAppointment.AppointmentTime ?? TimeSpan.Zero
                     );
                 }
 
@@ -385,7 +385,7 @@ namespace SatyamHealthCare.Controllers
                             patient.FullName,
                             doctor.FullName,
                             appointment.AppointmentDate ?? DateTime.Now,
-                            appointment.AppointmentTime ?? TimeSpan.Zero // Pass the cancelled time
+                            appointment.AppointmentTime ?? TimeSpan.Zero
                         );
                     }
 
@@ -399,7 +399,7 @@ namespace SatyamHealthCare.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
+    
         private bool AppointmentExists(int id)
         {
             return _context.Appointments.Any(e => e.AppointmentId == id);

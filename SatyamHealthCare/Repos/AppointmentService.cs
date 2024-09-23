@@ -109,7 +109,15 @@ namespace SatyamHealthCare.Repos
                 .ToListAsync();
         }
 
-         public async Task<List<Appointment>> GetFilteredAppointmentsByDoctorId(int doctorId, DateTime? startDate, DateTime? endDate, Status.AppointmentStatus? status)
+        public async Task<List<Appointment>> GetAppointmentsByPatientId(int patientId)
+        {
+            return await _context.Appointments
+                .Where(a => a.PatientId == patientId)
+                .Include(a => a.Doctor)
+                .ToListAsync();
+        }
+
+        public async Task<List<Appointment>> GetFilteredAppointmentsByDoctorId(int doctorId, DateTime? startDate, DateTime? endDate, Status.AppointmentStatus? status)
  {
      var query = _context.Appointments
          .Where(a => a.DoctorId == doctorId);

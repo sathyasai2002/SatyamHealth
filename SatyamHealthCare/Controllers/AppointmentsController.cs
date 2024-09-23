@@ -92,6 +92,59 @@ namespace SatyamHealthCare.Controllers
 
             return Ok(appointmentDto);
         }
+
+        [Authorize(Roles = "Patient")]
+        [HttpGet("patient/appointments")]
+        public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointmentsByPatient()
+        {
+            try
+            {
+                
+                var patientIdClaim = User.FindFirst("PatientId");
+                if (patientIdClaim == null)
+                {
+                    return Unauthorized("Patient ID not found in the token.");
+                }
+
+                if (!int.TryParse(patientIdClaim.Value, out int patientId))
+                {
+                    throw new PatientNotFoundException("Invalid Patient ID.");
+                }
+
+                
+                var appointments = await appointment1.GetAppointmentsByPatientId(patientId);
+
+                if (appointments == null || !appointments.Any())
+                {
+                    throw new AppointmentNotFoundException("No appointments found for this patient.");
+                }
+
+                var appointmentDtos = appointments.Select(a => new AppointmentDTO
+                {
+                    AppointmentId = a.AppointmentId,
+                    PatientId = a.PatientId,
+                    DoctorId = a.DoctorId,
+                    AppointmentDate = a.AppointmentDate,
+                    AppointmentTime = a.AppointmentTime,
+                    Status = a.Status
+                }).ToList();
+
+                return Ok(appointmentDtos);
+            }
+            catch (PatientNotFoundException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (AppointmentNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         // PUT: api/Appointments/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Doctor")]

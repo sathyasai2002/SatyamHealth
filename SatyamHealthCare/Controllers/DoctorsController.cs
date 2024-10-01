@@ -11,6 +11,8 @@ using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.Repos;
 using SatyamHealthCare.Exceptions;
+using System.Security.Claims;
+using SatyamHealthCare.Constants;
 
 namespace SatyamHealthCare.Controllers
 {
@@ -102,7 +104,7 @@ namespace SatyamHealthCare.Controllers
                 Experience = doctorDto.Experience,
                 SpecializationID = doctorDto.SpecializationID,
                 Qualification = doctorDto.Qualification,
-                ProfilePicture = doctorDto.ProfilePicture,
+                
                 AdminId = doctorDto.AdminId
             };
             var createdDoctor = await doctor1.AddDoctor(doctor);
@@ -129,6 +131,125 @@ namespace SatyamHealthCare.Controllers
             await doctor1.Save();
 
             return Ok();
+        }
+        [HttpGet("GetLoggedInDoctorName")]
+        public async Task<IActionResult> GetLoggedInDoctorName()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User is not logged in.");
+            }
+
+            if (!int.TryParse(userId, out int doctorId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
+
+            try
+            {
+                var doctor = await _context.Doctors
+                    .Where(d => d.DoctorId == doctorId)
+                    .Select(d => new { d.FullName, d.Email, }) 
+                    .FirstOrDefaultAsync();
+
+                if (doctor == null)
+                {
+                    return NotFound("Doctor not found.");
+                }
+
+                return Ok(new { FullName = doctor.FullName, Email = doctor.Email });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (consider using a logging framework)
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+        [Authorize(Roles ="Doctor")]
+        [HttpGet("GetDoctorAppointmentCounts")]
+        public async Task<IActionResult> GetDoctorAppointmentCounts()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User is not logged in.");
+            }
+
+            if (!int.TryParse(userId, out int doctorId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
+
+            try
+            {
+                var totalAppointments = await _context.Appointments
+                    .CountAsync(a => a.DoctorId == doctorId);
+
+                var pendingAppointments = await _context.Appointments
+                    .CountAsync(a => a.DoctorId == doctorId && a.Status == Status.AppointmentStatus.Pending);
+
+              
+                var rescheduledAppointments = await _context.Appointments
+                    .CountAsync(a => a.DoctorId == doctorId && a.Status == Status.AppointmentStatus.Rescheduled);
+
+                var completedAppointments = await _context.Appointments
+                  .CountAsync(a => a.DoctorId == doctorId && a.Status == Status.AppointmentStatus.Completed);
+
+                var response = new
+                {
+                    TotalAppointments = totalAppointments,
+                    PendingAppointments = pendingAppointments,
+                    RescheduledAppointments = rescheduledAppointments,
+                    CompletedAppointments = completedAppointments
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        // GET: api/Doctors/GetTodayAppointments
+        [Authorize(Roles = "Doctor")]
+        [HttpGet("GetTodayAppointments")]
+        public async Task<IActionResult> GetTodayAppointments()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User is not logged in.");
+            }
+
+            if (!int.TryParse(userId, out int doctorId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
+
+            try
+            {
+                var today = DateTime.Today;
+
+                var appointments = await _context.Appointments
+                    .Where(a => a.AppointmentDate.HasValue && a.AppointmentDate.Value.Date == today && a.DoctorId == doctorId)
+                    .Select(a => new
+                    {
+                        a.AppointmentId,
+                        PatientName = _context.Patients.Where(p => p.PatientID == a.PatientId).Select(p => p.FullName).FirstOrDefault(),
+                        a.AppointmentTime,
+                        a.PatientId,
+                        a.Status
+                    })
+                    .ToListAsync();
+
+                return Ok(appointments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
         }
 
         private bool DoctorExists(int id)

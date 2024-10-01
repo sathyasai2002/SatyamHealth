@@ -5,31 +5,31 @@
 namespace SatyamHealthCare.Migrations
 {
     /// <inheritdoc />
-    public partial class hello5 : Migration
+    public partial class casestudy6 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
-                name: "RecordID",
+            migrationBuilder.AlterColumn<string>(
+                name: "PdfFilePath",
                 table: "Prescriptions",
-                type: "int",
+                type: "nvarchar(max)",
                 nullable: true,
-                oldClrType: typeof(int),
-                oldType: "int");
+                oldClrType: typeof(string),
+                oldType: "nvarchar(max)");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
-                name: "RecordID",
+            migrationBuilder.AlterColumn<string>(
+                name: "PdfFilePath",
                 table: "Prescriptions",
-                type: "int",
+                type: "nvarchar(max)",
                 nullable: false,
-                defaultValue: 0,
-                oldClrType: typeof(int),
-                oldType: "int",
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "nvarchar(max)",
                 oldNullable: true);
         }
     }

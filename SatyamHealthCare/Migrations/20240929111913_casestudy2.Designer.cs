@@ -12,8 +12,8 @@ using SatyamHealthCare.Models;
 namespace SatyamHealthCare.Migrations
 {
     [DbContext(typeof(SatyamDbContext))]
-    [Migration("20240921081532_final 2")]
-    partial class final2
+    [Migration("20240929111913_casestudy2")]
+    partial class casestudy2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,37 @@ namespace SatyamHealthCare.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Prescription", b =>
+                {
+                    b.Property<int>("PrescriptionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionID"));
+
+                    b.Property<string>("BeforeAfterFood")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("NoOfDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Remark")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("PrescriptionID");
+
+                    b.ToTable("Prescriptions");
+                });
 
             modelBuilder.Entity("SatyamHealthCare.Models.Admin", b =>
                 {
@@ -74,8 +105,13 @@ namespace SatyamHealthCare.Migrations
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Symptoms")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("AppointmentId");
 
@@ -124,9 +160,6 @@ namespace SatyamHealthCare.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
 
-                    b.Property<byte[]>("ProfilePicture")
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<string>("Qualification")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -153,20 +186,16 @@ namespace SatyamHealthCare.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MedicalHistoryId"));
 
                     b.Property<string>("Allergies")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("ChronicConditions")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CurrentSymptoms")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("FamilyHistory")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("HadSurgeries")
                         .HasColumnType("bit");
@@ -184,26 +213,26 @@ namespace SatyamHealthCare.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("LifestyleFactors")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Medications")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
 
                     b.Property<string>("Surgeries")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("TakesMedications")
                         .HasColumnType("bit");
 
                     b.Property<string>("VaccinationRecords")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.HasKey("MedicalHistoryId");
 
@@ -243,9 +272,25 @@ namespace SatyamHealthCare.Migrations
 
                     b.HasIndex("PatientID");
 
-                    b.HasIndex("PrescriptionID");
-
                     b.ToTable("MedicalRecords");
+                });
+
+            modelBuilder.Entity("SatyamHealthCare.Models.Medicine", b =>
+                {
+                    b.Property<int>("MedicineID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MedicineID"));
+
+                    b.Property<string>("MedicineName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("MedicineID");
+
+                    b.ToTable("Medicines");
                 });
 
             modelBuilder.Entity("SatyamHealthCare.Models.Patient", b =>
@@ -304,80 +349,44 @@ namespace SatyamHealthCare.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<byte[]>("ProfilePicture")
-                        .HasColumnType("varbinary(max)");
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.HasKey("PatientID");
 
                     b.ToTable("Patients");
                 });
 
-            modelBuilder.Entity("SatyamHealthCare.Models.PrescribedTest", b =>
+            modelBuilder.Entity("SatyamHealthCare.Models.PrescriptionMedicine", b =>
                 {
-                    b.Property<int>("PrescribedTestID")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("PrescriptionID")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescribedTestID"));
-
-                    b.Property<int?>("MedicalRecordRecordID")
+                    b.Property<int>("MedicineID")
                         .HasColumnType("int");
 
-                    b.Property<int>("RecordID")
+                    b.HasKey("PrescriptionID", "MedicineID");
+
+                    b.HasIndex("MedicineID");
+
+                    b.ToTable("PrescriptionMedicine");
+                });
+
+            modelBuilder.Entity("SatyamHealthCare.Models.PrescriptionTest", b =>
+                {
+                    b.Property<int>("PrescriptionID")
                         .HasColumnType("int");
 
                     b.Property<int>("TestID")
                         .HasColumnType("int");
 
-                    b.Property<string>("TestResult")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.HasKey("PrescribedTestID");
-
-                    b.HasIndex("MedicalRecordRecordID");
+                    b.HasKey("PrescriptionID", "TestID");
 
                     b.HasIndex("TestID");
 
-                    b.ToTable("PrescribedTests");
-                });
-
-            modelBuilder.Entity("SatyamHealthCare.Models.Prescription", b =>
-                {
-                    b.Property<int>("PrescriptionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionID"));
-
-                    b.Property<string>("BeforeAfterFood")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("Dosage")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("MedicineName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("NoOfDays")
-                        .HasMaxLength(255)
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RecordID")
-                        .HasColumnType("int");
-
-                    b.HasKey("PrescriptionID");
-
-                    b.HasIndex("RecordID");
-
-                    b.ToTable("Prescriptions");
+                    b.ToTable("PrescriptionTest");
                 });
 
             modelBuilder.Entity("SatyamHealthCare.Models.Specialization", b =>
@@ -479,44 +488,54 @@ namespace SatyamHealthCare.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SatyamHealthCare.Models.Prescription", "Prescription")
-                        .WithMany()
-                        .HasForeignKey("PrescriptionID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Doctor");
 
                     b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("SatyamHealthCare.Models.PrescriptionMedicine", b =>
+                {
+                    b.HasOne("SatyamHealthCare.Models.Medicine", "Medicine")
+                        .WithMany("PrescriptionMedicines")
+                        .HasForeignKey("MedicineID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Prescription", "Prescription")
+                        .WithMany("PrescriptionMedicines")
+                        .HasForeignKey("PrescriptionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Medicine");
 
                     b.Navigation("Prescription");
                 });
 
-            modelBuilder.Entity("SatyamHealthCare.Models.PrescribedTest", b =>
+            modelBuilder.Entity("SatyamHealthCare.Models.PrescriptionTest", b =>
                 {
-                    b.HasOne("SatyamHealthCare.Models.MedicalRecord", "MedicalRecord")
-                        .WithMany("PrescribedTests")
-                        .HasForeignKey("MedicalRecordRecordID");
+                    b.HasOne("Prescription", "Prescription")
+                        .WithMany("PrescriptionTests")
+                        .HasForeignKey("PrescriptionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SatyamHealthCare.Models.Test", "Test")
-                        .WithMany("PrescribedTests")
+                        .WithMany("PrescriptionTests")
                         .HasForeignKey("TestID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("MedicalRecord");
+                    b.Navigation("Prescription");
 
                     b.Navigation("Test");
                 });
 
-            modelBuilder.Entity("SatyamHealthCare.Models.Prescription", b =>
+            modelBuilder.Entity("Prescription", b =>
                 {
-                    b.HasOne("SatyamHealthCare.Models.MedicalRecord", "MedicalRecord")
-                        .WithMany("Prescriptions")
-                        .HasForeignKey("RecordID")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.Navigation("PrescriptionMedicines");
 
-                    b.Navigation("MedicalRecord");
+                    b.Navigation("PrescriptionTests");
                 });
 
             modelBuilder.Entity("SatyamHealthCare.Models.Admin", b =>
@@ -531,11 +550,9 @@ namespace SatyamHealthCare.Migrations
                     b.Navigation("MedicalRecords");
                 });
 
-            modelBuilder.Entity("SatyamHealthCare.Models.MedicalRecord", b =>
+            modelBuilder.Entity("SatyamHealthCare.Models.Medicine", b =>
                 {
-                    b.Navigation("PrescribedTests");
-
-                    b.Navigation("Prescriptions");
+                    b.Navigation("PrescriptionMedicines");
                 });
 
             modelBuilder.Entity("SatyamHealthCare.Models.Patient", b =>
@@ -554,7 +571,7 @@ namespace SatyamHealthCare.Migrations
 
             modelBuilder.Entity("SatyamHealthCare.Models.Test", b =>
                 {
-                    b.Navigation("PrescribedTests");
+                    b.Navigation("PrescriptionTests");
                 });
 #pragma warning restore 612, 618
         }

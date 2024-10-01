@@ -4,6 +4,7 @@ using SatyamHealthCare.Exceptions;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.Constants;
+using static SatyamHealthCare.Constants.Status;
 
 namespace SatyamHealthCare.Repos
 {
@@ -47,31 +48,29 @@ namespace SatyamHealthCare.Repos
             }
         }
 
-        public async Task<bool> UpdateAppointment(int id, UpdateAppointmentDTO updateDto)
+        public async Task<bool> RescheduleAppointmentAsync(int appointmentId, DateTime newDate, TimeSpan newTime, int doctorId)
         {
-            try
-            {
-                var appointment = await _context.Appointments.FindAsync(id);
+         
+            var appointment = await _context.Appointments
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
 
             if (appointment == null)
             {
-                    throw new EntityNotFoundException("Appointment", id);
-                }
-
-            
-            appointment.DoctorId = updateDto.DoctorId;
-            appointment.AppointmentDate = updateDto.AppointmentDate;
-            appointment.Status = updateDto.Status;
-
-            _context.Appointments.Update(appointment);
-            await _context.SaveChangesAsync();
-
-            return true;
+                throw new AppointmentNotFoundException($"Appointment with ID {appointmentId} not found.");
             }
-            catch (Exception ex)
+
+         
+            if (appointment.DoctorId != doctorId)
             {
-                throw new EntityUpdateFailedException("Appointment", id, ex);
+                throw new UnauthorizedAccessException("You are not authorized to reschedule this appointment.");
             }
+
+            appointment.AppointmentDate = newDate;
+            appointment.AppointmentTime = newTime;
+            appointment.Status = AppointmentStatus.Rescheduled;
+
+            // Save changes to the database
+            return await _context.SaveChangesAsync() > 0;
         }
 
 
@@ -104,6 +103,7 @@ namespace SatyamHealthCare.Repos
         public async Task<List<Appointment>> GetAppointmentsByDoctorId(int doctorId)
         {
             return await _context.Appointments
+                .Include(a => a.Patient)
                 .Where(a => a.DoctorId == doctorId)
                 .Include(a => a.Patient)
                 .ToListAsync();
@@ -143,7 +143,35 @@ namespace SatyamHealthCare.Repos
          .ToListAsync();
  }
 
-     
+
+
+
+
+        public async Task<bool> UpdateAppointmentStatusAsync(int appointmentId, string status)
+        {
+            
+            if (!Enum.TryParse(typeof(Constants.Status.AppointmentStatus), status, true, out var appointmentStatus))
+            {
+                return false; 
+            }
+
+            var appointment = await _context.Appointments.FindAsync(appointmentId);
+            if (appointment == null)
+            {
+                return false; 
+            }
+            
+            appointment.Status = (Constants.Status.AppointmentStatus)appointmentStatus;
+
+            
+            _context.Appointments.Update(appointment);
+            await _context.SaveChangesAsync();
+
+            return true; 
+        }
+
+
+
 
     }
 

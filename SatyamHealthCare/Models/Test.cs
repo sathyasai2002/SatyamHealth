@@ -11,7 +11,7 @@ namespace SatyamHealthCare.Models
         [MaxLength(255)]
         public string TestName { get; set; }
 
-        // Navigation property
-        public ICollection<PrescribedTest>? PrescribedTests { get; set; } = new List<PrescribedTest>();  
+        public virtual ICollection<PrescriptionTest> PrescriptionTests { get; set; }
+
     }
 }

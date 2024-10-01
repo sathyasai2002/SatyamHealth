@@ -2,6 +2,7 @@
 using static System.Net.Mime.MediaTypeNames;
 using System.Numerics;
 using SatyamHealthCare.Constants;
+using static SatyamHealthCare.Constants.Status;
 
 namespace SatyamHealthCare.Models
 {
@@ -18,8 +19,8 @@ namespace SatyamHealthCare.Models
         public DbSet<MedicalHistoryFile> MedicalHistoryFiles { get; set; }
         public DbSet<Prescription> Prescriptions { get; set; }
         public DbSet<Test> Tests { get; set; }
-        public DbSet<PrescribedTest> PrescribedTests { get; set; }
-
+        
+         public DbSet<Medicine> Medicines { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -62,21 +63,36 @@ namespace SatyamHealthCare.Models
                 .WithOne(mr => mr.Doctor)
                 .HasForeignKey(mr => mr.DoctorID);
 
-            modelBuilder.Entity<MedicalRecord>()
-                .HasOne(mr => mr.Prescription)
-                .WithMany()
-                .HasForeignKey(mr => mr.PrescriptionID);
+            /*  modelBuilder.Entity<MedicalRecord>()
+                  .HasOne(mr => mr.Prescription)
+                  .WithMany()
+                  .HasForeignKey(mr => mr.PrescriptionID);*/
+            modelBuilder.Entity<PrescriptionMedicine>()
+       .HasKey(pm => new { pm.PrescriptionID, pm.MedicineID });
 
-            modelBuilder.Entity<MedicalRecord>()
-       .HasMany(mr => mr.Prescriptions)
-       .WithOne(p => p.MedicalRecord)
-       .HasForeignKey(p => p.RecordID)
-       .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<PrescriptionMedicine>()
+                .HasOne(pm => pm.Prescription)
+                .WithMany(p => p.PrescriptionMedicines)
+                .HasForeignKey(pm => pm.PrescriptionID);
 
-            modelBuilder.Entity<PrescribedTest>()
+            modelBuilder.Entity<PrescriptionMedicine>()
+                .HasOne(pm => pm.Medicine)
+                .WithMany(m => m.PrescriptionMedicines)
+                .HasForeignKey(pm => pm.MedicineID);
+
+            modelBuilder.Entity<PrescriptionTest>()
+                .HasKey(pt => new { pt.PrescriptionID, pt.TestID });
+
+            modelBuilder.Entity<PrescriptionTest>()
+                .HasOne(pt => pt.Prescription)
+                .WithMany(p => p.PrescriptionTests)
+                .HasForeignKey(pt => pt.PrescriptionID);
+
+            modelBuilder.Entity<PrescriptionTest>()
                 .HasOne(pt => pt.Test)
-                .WithMany(t => t.PrescribedTests)
+                .WithMany(t => t.PrescriptionTests)
                 .HasForeignKey(pt => pt.TestID);
+
 
             modelBuilder.Entity<MedicalHistoryFile>()
                 .HasOne(mhf => mhf.Patient)
@@ -84,12 +100,23 @@ namespace SatyamHealthCare.Models
                 .HasForeignKey(mhf => mhf.PatientId);
 
             modelBuilder.Entity<Prescription>()
+          .HasOne(p => p.Appointment)
+          .WithMany(a => a.Prescriptions)
+          .HasForeignKey(p => p.AppointmentId);
+
+           /* modelBuilder.Entity<Prescription>()
                 .HasMany<MedicalRecord>()
                 .WithOne(mr => mr.Prescription)
                 .HasForeignKey(mr => mr.PrescriptionID)
-                 .OnDelete(DeleteBehavior.Restrict);
+                 .OnDelete(DeleteBehavior.Restrict);*/
 
-         
+            modelBuilder.Entity<Appointment>()
+           .Property(a => a.Status)
+           .HasConversion(
+               v => v.ToString(), // Convert enum to string
+               v => (AppointmentStatus)Enum.Parse(typeof(AppointmentStatus), v)
+           );
+
         }
 
 

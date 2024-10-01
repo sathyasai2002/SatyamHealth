@@ -178,6 +178,7 @@ namespace SatyamHealthCare.Controllers
 
             return NoContent();
         }
+
         [HttpGet("GetLoggedInPatient")]
         public async Task<IActionResult> GetLoggedInPatient()
         {

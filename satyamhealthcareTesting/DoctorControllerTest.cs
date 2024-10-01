@@ -112,7 +112,7 @@ namespace SatyamHealthCare.Tests.Controllers
                 Experience = 5,
                 SpecializationID = 1,
                 Qualification = "MBBS",
-                ProfilePicture = null,
+               // ProfilePicture = null,
                 AdminId = 1
             };
 

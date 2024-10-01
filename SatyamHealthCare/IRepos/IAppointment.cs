@@ -13,9 +13,9 @@ namespace SatyamHealthCare.IRepos
 
         Task<List<Appointment>> GetAppointmentsByPatientId(int patientId);
         Task<List<Appointment>> GetFilteredAppointmentsByDoctorId(int doctorId, DateTime? startDate, DateTime? endDate, Status.AppointmentStatus? status);
-        Task<bool> UpdateAppointment(int id, UpdateAppointmentDTO updateDto);
-       
-            Task<bool> DeleteAppointment(int id);
+        Task<bool> RescheduleAppointmentAsync(int appointmentId, DateTime newDate, TimeSpan newTime, int doctorId);
+        Task<bool> UpdateAppointmentStatusAsync(int appointmentId, string status);
+        Task<bool> DeleteAppointment(int id);
             Task Save();
         
     }

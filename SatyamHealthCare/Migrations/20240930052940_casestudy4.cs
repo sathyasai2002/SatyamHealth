@@ -5,16 +5,15 @@
 namespace SatyamHealthCare.Migrations
 {
     /// <inheritdoc />
-    public partial class hello6 : Migration
+    public partial class casestudy4 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "Email",
-                table: "Doctors",
-                type: "nvarchar(100)",
-                maxLength: 100,
+                name: "PdfFilePath",
+                table: "Prescriptions",
+                type: "nvarchar(max)",
                 nullable: false,
                 defaultValue: "");
         }
@@ -23,8 +22,8 @@ namespace SatyamHealthCare.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Email",
-                table: "Doctors");
+                name: "PdfFilePath",
+                table: "Prescriptions");
         }
     }
 }

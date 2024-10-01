@@ -1,27 +1,23 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SatyamHealthCare.DTO
+namespace SatyamHealthCare.DTOs
 {
     public class PrescriptionDTO
     {
-        [Required]
         public int PrescriptionID { get; set; }
-
-        [Required]
-        [MaxLength(255)]
-        public string MedicineName { get; set; }
-
-        [Required]
         public int NoOfDays { get; set; }
-
-        [Required]
-        [MaxLength(50)]
         public string Dosage { get; set; }
-
-        [Required]
-        [MaxLength(10)]
         public string BeforeAfterFood { get; set; }
+        public string Remark { get; set; }
 
-      public MedicalRecordDTO? MedicalRecord { get; set; }
+        public List<int> MedicineIDs { get; set; } = new List<int>();
+        public List<int> TestIDs { get; set; } = new List<int>();
+
+        public int AppointmentId { get; set; }
+        public string PatientName { get; set; }
+        public string DoctorName { get; set; }
+
+
     }
+
 }

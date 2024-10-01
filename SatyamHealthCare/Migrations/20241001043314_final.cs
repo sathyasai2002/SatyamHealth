@@ -5,18 +5,24 @@
 namespace SatyamHealthCare.Migrations
 {
     /// <inheritdoc />
-    public partial class hello8 : Migration
+    public partial class final : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-
+            migrationBuilder.DropColumn(
+                name: "PdfFilePath",
+                table: "Prescriptions");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-
+            migrationBuilder.AddColumn<string>(
+                name: "PdfFilePath",
+                table: "Prescriptions",
+                type: "nvarchar(max)",
+                nullable: true);
         }
     }
 }

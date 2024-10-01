@@ -11,6 +11,8 @@ using SatyamHealthCare.Models;
 using SatyamHealthCare.Repos;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
+using DinkToPdf.Contracts;
+using DinkToPdf;
 
 namespace SatyamHealthCare
 {
@@ -32,13 +34,14 @@ namespace SatyamHealthCare
             builder.Services.AddScoped<IDoctor, DoctorService>();
             builder.Services.AddScoped<IAppointment, AppointmentService>();
             builder.Services.AddScoped<IMedicalRecord, MedicalRecordService>();
-            builder.Services.AddScoped<IPrescription, PrescriptionService>();
+            builder.Services.AddScoped<IMedicalHistoryFile, MedicalHistoryFileService>();
+           builder.Services.AddScoped<IPrescription, PrescriptionService>();
             builder.Services.AddScoped<ITest, TestService>();
-            builder.Services.AddScoped<IPrescribedTest, PrescribedTestService>();
             builder.Services.AddScoped<ILogin, LoginCredService>();
             builder.Services.AddTransient<IEmailService, EmailService>();
             builder.Services.AddTransient<ISmsService, SmsService>();
             builder.Services.AddTransient<INotificationService, NotificationService>();
+            builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 
 
             builder.Services.AddControllers()
@@ -124,10 +127,10 @@ namespace SatyamHealthCare
                 });
             });
             builder.Services.AddControllers().AddJsonOptions(options =>
-            {
-                // options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-                options.JsonSerializerOptions.ReferenceHandler = null;
-            });
+           {
+                //options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+               options.JsonSerializerOptions.ReferenceHandler = null;
+           });
      
             var app = builder.Build();
 

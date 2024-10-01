@@ -18,7 +18,7 @@ namespace SatyamHealthCare.Repos
             return await _context.MedicalRecords
             .Include(mr => mr.Patient)
             .Include(mr => mr.Doctor)
-            .Include(mr => mr.Prescription)
+            //.Include(mr => mr.Prescription)
             .ToListAsync();
         }
         // Get a medical record by ID
@@ -27,7 +27,7 @@ namespace SatyamHealthCare.Repos
             return await _context.MedicalRecords
             .Include(mr => mr.Patient)
             .Include(mr => mr.Doctor)
-            .Include(mr => mr.Prescription)
+            //.Include(mr => mr.Prescription)
             .FirstOrDefaultAsync(mr => mr.RecordID == id);
         }
         // Add a new medical record

@@ -25,5 +25,8 @@ namespace SatyamHealthCare.DTO
         public string? DoctorName { get; set; }
 
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
+
+        public string? PatientName { get; set; }
+        public string Symptoms { get; set; }
     }
 }

@@ -52,7 +52,6 @@ namespace SatyamHealthCare.Controllers
                 return NotFound();
             }
 
-            // Map to DTO
             var prescriptionDto = new PrescriptionDTO
             {
                 PrescriptionID = prescription.PrescriptionID,

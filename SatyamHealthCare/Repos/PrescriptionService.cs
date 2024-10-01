@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DinkToPdf;
 using DinkToPdf.Contracts;
+using System.Linq;
 
 namespace SatyamHealthCare.Repos
 {
@@ -43,7 +44,8 @@ namespace SatyamHealthCare.Repos
                     .ThenInclude(a => a.Doctor)  
                 .FirstOrDefaultAsync(p => p.PrescriptionID == id);
         }
-      
+
+        
         public async Task AddPrescriptionAsync(Prescription prescription)
         {
             _context.Prescriptions.Add(prescription);

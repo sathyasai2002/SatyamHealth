@@ -14,6 +14,7 @@ namespace SatyamHealthCare.DTOs
         public List<int> TestIDs { get; set; } = new List<int>();
 
         public int AppointmentId { get; set; }
+
         public string PatientName { get; set; }
         public string DoctorName { get; set; }
 

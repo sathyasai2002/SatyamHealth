@@ -6,7 +6,7 @@ namespace SatyamHealthCare.Repos
 {
     public class TestService : ITest
     {
-        private readonly SatyamDbContext _context; // Replace with your actual DbContext class
+        private readonly SatyamDbContext _context;
         public TestService(SatyamDbContext context)
         {
             _context = context;

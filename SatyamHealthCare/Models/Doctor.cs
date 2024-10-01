@@ -44,8 +44,6 @@ namespace SatyamHealthCare.Models
         [StringLength (100)]
         public string Qualification { get; set; }
 
-        public byte[]? ProfilePicture { get; set; }
-
         public int AdminId { get; set; }
         public virtual Admin? Admin { get; set; }
 

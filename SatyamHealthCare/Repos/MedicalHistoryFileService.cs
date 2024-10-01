@@ -18,19 +18,25 @@
                 .Include(m => m.Patient)
                 .ToListAsync();
             }
-            public async Task<MedicalHistoryFile> GetMedicalHistoryFileById(int id)
+
+        public async Task<MedicalHistoryFile> GetMedicalHistoryByPatientIdAsync(int patientId)
+        {
+            return await _context.MedicalHistoryFiles
+                .FirstOrDefaultAsync(m => m.PatientId == patientId);
+        }
+        public async Task<MedicalHistoryFile> GetMedicalHistoryFileById(int id)
             {
                 return await _context.MedicalHistoryFiles
                 .Include(m => m.Patient)
                 .FirstOrDefaultAsync(m => m.MedicalHistoryId == id);
             }
-            public async Task<IEnumerable<MedicalHistoryFile>> GetMedicalHistoryFilesByPatientId(int
+           /* public async Task<IEnumerable<MedicalHistoryFile>> GetMedicalHistoryFilesByPatientId(int
            patientId)
             {
                 return await _context.MedicalHistoryFiles
                 .Where(m => m.PatientId == patientId)
                 .ToListAsync();
-            }
+            }*/
             public async Task AddMedicalHistoryFile(MedicalHistoryFile medicalHistoryFile)
             {
                 _context.MedicalHistoryFiles.Add(medicalHistoryFile);

@@ -31,5 +31,7 @@ namespace SatyamHealthCare.Models
         [Required]
         [DefaultValue(AppointmentStatus.Pending)]
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
+
+        public string Symptoms { get; set; }
     }
 }

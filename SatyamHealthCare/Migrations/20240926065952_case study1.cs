@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SatyamHealthCare.Migrations
 {
     /// <inheritdoc />
-    public partial class hello1 : Migration
+    public partial class casestudy1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,6 +27,19 @@ namespace SatyamHealthCare.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Medicines",
+                columns: table => new
+                {
+                    MedicineID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MedicineName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Medicines", x => x.MedicineID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Patients",
                 columns: table => new
                 {
@@ -41,8 +54,8 @@ namespace SatyamHealthCare.Migrations
                     Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     Pincode = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     City = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    ProfilePicture = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
+                    State = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -83,19 +96,18 @@ namespace SatyamHealthCare.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PatientId = table.Column<int>(type: "int", nullable: false),
                     HasChronicConditions = table.Column<bool>(type: "bit", nullable: false),
-                    ChronicConditions = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ChronicConditions = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     HasAllergies = table.Column<bool>(type: "bit", nullable: false),
-                    Allergies = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Allergies = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     TakesMedications = table.Column<bool>(type: "bit", nullable: false),
-                    Medications = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Medications = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     HadSurgeries = table.Column<bool>(type: "bit", nullable: false),
-                    Surgeries = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Surgeries = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     HasFamilyHistory = table.Column<bool>(type: "bit", nullable: false),
-                    FamilyHistory = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FamilyHistory = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     HasLifestyleFactors = table.Column<bool>(type: "bit", nullable: false),
-                    LifestyleFactors = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    VaccinationRecords = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CurrentSymptoms = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    LifestyleFactors = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    VaccinationRecords = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -116,12 +128,12 @@ namespace SatyamHealthCare.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     PhoneNo = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Designation = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Experience = table.Column<int>(type: "int", maxLength: 100, nullable: false),
+                    Experience = table.Column<int>(type: "int", nullable: false),
                     SpecializationID = table.Column<int>(type: "int", nullable: false),
                     Qualification = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    ProfilePicture = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
                     AdminId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -142,6 +154,36 @@ namespace SatyamHealthCare.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Prescriptions",
+                columns: table => new
+                {
+                    PrescriptionID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NoOfDays = table.Column<int>(type: "int", nullable: false),
+                    Dosage = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    BeforeAfterFood = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    Remark = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    MedicineID = table.Column<int>(type: "int", nullable: false),
+                    TestID = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Prescriptions", x => x.PrescriptionID);
+                    table.ForeignKey(
+                        name: "FK_Prescriptions_Medicines_MedicineID",
+                        column: x => x.MedicineID,
+                        principalTable: "Medicines",
+                        principalColumn: "MedicineID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Prescriptions_Tests_TestID",
+                        column: x => x.TestID,
+                        principalTable: "Tests",
+                        principalColumn: "TestID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Appointments",
                 columns: table => new
                 {
@@ -150,7 +192,9 @@ namespace SatyamHealthCare.Migrations
                     PatientId = table.Column<int>(type: "int", nullable: false),
                     DoctorId = table.Column<int>(type: "int", nullable: false),
                     AppointmentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    AppointmentTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Symptoms = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -198,56 +242,6 @@ namespace SatyamHealthCare.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "PrescribedTests",
-                columns: table => new
-                {
-                    PrescribedTestID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RecordID = table.Column<int>(type: "int", nullable: false),
-                    TestID = table.Column<int>(type: "int", nullable: false),
-                    TestResult = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    MedicalRecordRecordID = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PrescribedTests", x => x.PrescribedTestID);
-                    table.ForeignKey(
-                        name: "FK_PrescribedTests_MedicalRecords_MedicalRecordRecordID",
-                        column: x => x.MedicalRecordRecordID,
-                        principalTable: "MedicalRecords",
-                        principalColumn: "RecordID");
-                    table.ForeignKey(
-                        name: "FK_PrescribedTests_Tests_TestID",
-                        column: x => x.TestID,
-                        principalTable: "Tests",
-                        principalColumn: "TestID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Prescriptions",
-                columns: table => new
-                {
-                    PrescriptionID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    MedicineName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    NoOfDays = table.Column<int>(type: "int", maxLength: 255, nullable: false),
-                    Dosage = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    BeforeAfterFood = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    RecordID = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Prescriptions", x => x.PrescriptionID);
-                    table.ForeignKey(
-                        name: "FK_Prescriptions_MedicalRecords_RecordID",
-                        column: x => x.RecordID,
-                        principalTable: "MedicalRecords",
-                        principalColumn: "RecordID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Appointments_DoctorId",
                 table: "Appointments",
@@ -284,49 +278,19 @@ namespace SatyamHealthCare.Migrations
                 column: "PatientID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MedicalRecords_PrescriptionID",
-                table: "MedicalRecords",
-                column: "PrescriptionID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PrescribedTests_MedicalRecordRecordID",
-                table: "PrescribedTests",
-                column: "MedicalRecordRecordID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PrescribedTests_TestID",
-                table: "PrescribedTests",
-                column: "TestID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Prescriptions_RecordID",
+                name: "IX_Prescriptions_MedicineID",
                 table: "Prescriptions",
-                column: "RecordID");
+                column: "MedicineID");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_MedicalRecords_Prescriptions_PrescriptionID",
-                table: "MedicalRecords",
-                column: "PrescriptionID",
-                principalTable: "Prescriptions",
-                principalColumn: "PrescriptionID",
-                onDelete: ReferentialAction.Restrict);
+            migrationBuilder.CreateIndex(
+                name: "IX_Prescriptions_TestID",
+                table: "Prescriptions",
+                column: "TestID");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_MedicalRecords_Doctors_DoctorID",
-                table: "MedicalRecords");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_MedicalRecords_Patients_PatientID",
-                table: "MedicalRecords");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_MedicalRecords_Prescriptions_PrescriptionID",
-                table: "MedicalRecords");
-
             migrationBuilder.DropTable(
                 name: "Appointments");
 
@@ -334,28 +298,28 @@ namespace SatyamHealthCare.Migrations
                 name: "MedicalHistoryFiles");
 
             migrationBuilder.DropTable(
-                name: "PrescribedTests");
+                name: "MedicalRecords");
 
             migrationBuilder.DropTable(
-                name: "Tests");
+                name: "Prescriptions");
 
             migrationBuilder.DropTable(
                 name: "Doctors");
+
+            migrationBuilder.DropTable(
+                name: "Patients");
+
+            migrationBuilder.DropTable(
+                name: "Medicines");
+
+            migrationBuilder.DropTable(
+                name: "Tests");
 
             migrationBuilder.DropTable(
                 name: "Admins");
 
             migrationBuilder.DropTable(
                 name: "Specializations");
-
-            migrationBuilder.DropTable(
-                name: "Patients");
-
-            migrationBuilder.DropTable(
-                name: "Prescriptions");
-
-            migrationBuilder.DropTable(
-                name: "MedicalRecords");
         }
     }
 }

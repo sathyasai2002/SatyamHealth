@@ -5,7 +5,7 @@
 namespace SatyamHealthCare.Migrations
 {
     /// <inheritdoc />
-    public partial class hello8 : Migration
+    public partial class study2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

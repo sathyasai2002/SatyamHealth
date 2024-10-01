@@ -4,6 +4,7 @@ namespace SatyamHealthCare.DTO
 {
     public class DoctorDTO
     {
+        public int DoctorId { get; set; }
         [Required]
         public string FullName { get; set; }
 
@@ -25,15 +26,17 @@ namespace SatyamHealthCare.DTO
         [Required]
         public int Experience { get; set; }
 
-        [Required]
+        
         public int SpecializationID { get; set; }
 
         [Required]
         public string Qualification { get; set; }
 
-        public byte[]? ProfilePicture { get; set; }
+        
 
         [Required]
         public int AdminId { get; set; }
+
+
     }
 }

@@ -1,231 +1,94 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.DTOs;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
-using SatyamHealthCare.DTO;
-using SatyamHealthCare.Repos;
-using System.Security.Claims;
-using SatyamHealthCare.Exceptions;
 
 namespace SatyamHealthCare.Controllers
 {
-   
     [Route("api/[controller]")]
     [ApiController]
     public class PrescriptionsController : ControllerBase
     {
         private readonly SatyamDbContext _context;
-        private readonly IPrescription prescription1;
+        private readonly IPrescription _prescriptionService;
 
-        public PrescriptionsController(SatyamDbContext context, IPrescription prescription1)
+        public PrescriptionsController(SatyamDbContext context, IPrescription prescriptionService)
         {
             _context = context;
-            this.prescription1 = prescription1;
+            _prescriptionService = prescriptionService;
         }
 
-        // GET: api/Prescriptions
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PrescriptionDTO>>> GetPrescriptions()
+        public async Task<ActionResult<IEnumerable<PrescriptionDTO>>> GetAllPrescriptions()
         {
-            var prescriptions = await prescription1.GetAllPrescriptionsAsync();
-
-            
+            var prescriptions = await _prescriptionService.GetAllPrescriptionsAsync();
+            // Map to DTOs
             var prescriptionDtos = prescriptions.Select(p => new PrescriptionDTO
             {
                 PrescriptionID = p.PrescriptionID,
-                MedicineName = p.MedicineName,
+                MedicineID = p.MedicineID,
+                TestID = p.TestID,
+                MedicineName = p.Medicine?.MedicineName, // Accessing MedicineName via navigation property
                 NoOfDays = p.NoOfDays,
                 Dosage = p.Dosage,
                 BeforeAfterFood = p.BeforeAfterFood,
-                MedicalRecord = p.MedicalRecord != null ? new MedicalRecordDTO
-                {
-                    PatientID = p.MedicalRecord.PatientID,
-                    DoctorID = p.MedicalRecord.DoctorID,
-                    ConsultationDateTime = p.MedicalRecord.ConsultationDateTime,
-                    Diagnosis = p.MedicalRecord.Diagnosis,
-                    PrescriptionID = p.MedicalRecord.PrescriptionID
-                } : null
+                Remark = p.Remark
             }).ToList();
 
             return Ok(prescriptionDtos);
         }
 
-        // GET: api/Prescriptions/5
+        // GET: api/prescription/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<PrescriptionDTO>> GetPrescription(int id)
+        public async Task<ActionResult<PrescriptionDTO>> GetPrescriptionById(int id)
         {
-            try
+            var prescription = await _prescriptionService.GetPrescriptionById(id);
+            if (prescription == null)
             {
-                var prescription = await prescription1.GetPrescriptionByIdAsync(id);
-
-                if (prescription == null)
-                {
-                    throw new PrescriptionNotFoundException($"Prescription with ID {id} was not found.");
-                }
-
-                var prescriptionDto = new PrescriptionDTO
-                {
-                    PrescriptionID = prescription.PrescriptionID,
-                    MedicineName = prescription.MedicineName,
-                    NoOfDays = prescription.NoOfDays,
-                    Dosage = prescription.Dosage,
-                    BeforeAfterFood = prescription.BeforeAfterFood,
-                    MedicalRecord = prescription.MedicalRecord != null ? new MedicalRecordDTO
-                    {
-                        PatientID = prescription.MedicalRecord.PatientID,
-                        DoctorID = prescription.MedicalRecord.DoctorID,
-                        ConsultationDateTime = prescription.MedicalRecord.ConsultationDateTime,
-                        Diagnosis = prescription.MedicalRecord.Diagnosis,
-                        PrescriptionID = prescription.MedicalRecord.PrescriptionID
-                    } : null
-                };
-
-                return Ok(prescriptionDto);
+                return NotFound();
             }
-            catch (PrescriptionNotFoundException ex)
+            // Map to DTO
+            var prescriptionDto = new PrescriptionDTO
             {
-                // Return a NotFound response with the exception message
-                return NotFound(new { message = ex.Message });
-            }
-        }
-
-        [Authorize(Roles = "Patient")]
-        [HttpGet ("Filter")]
-        public async Task<ActionResult<IEnumerable<PrescriptionDTO>>> GetAllPrescriptionsForParticularPatient()
-        {
-            // Extract the patientId from the JWT claims
-            var patientIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (patientIdClaim == null)
-            {
-                return Unauthorized("Patient ID not found in the token.");
-            }
-
-            if (!int.TryParse(patientIdClaim.Value, out int patientId))
-            {
-                return BadRequest("Invalid Patient ID.");
-            }
-
-           
-            var prescriptions = await _context.Prescriptions
-                .Include(p => p.MedicalRecord) 
-                .Where(p => p.MedicalRecord != null && p.MedicalRecord.PatientID == patientId)
-                .ToListAsync();
-
-            if (prescriptions == null || !prescriptions.Any())
-            {
-                return NotFound("No prescriptions found for this patient.");
-            }
-
-            var prescriptionDtos = prescriptions.Select(p => new PrescriptionDTO
-            {
-                PrescriptionID = p.PrescriptionID,
-                MedicineName = p.MedicineName,
-                NoOfDays = p.NoOfDays,
-                Dosage = p.Dosage,
-                BeforeAfterFood = p.BeforeAfterFood,
-                MedicalRecord = new MedicalRecordDTO
-                {
-                    RecordID = p.MedicalRecord.RecordID,
-                    PatientID = p.MedicalRecord.PatientID
-                }
-            }).ToList();
-
-            return Ok(prescriptionDtos);
-        }
-
-
-        // PUT: api/Prescriptions/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutPrescription(int id, PrescriptionDTO prescriptionDto)
-        {
-            if (id != prescriptionDto.PrescriptionID)
-            {
-                return BadRequest("Prescription ID mismatch.");
-            }
-
-
-            try
-            {
-                var prescription = await prescription1.GetPrescriptionByIdAsync(id);
-
-                if (prescription == null)
-                {
-                    throw new PrescriptionNotFoundException($"Prescription with ID {id} was not found.");
-                }
-
-                var updatedPrescription = new Prescription
-                {
-                    PrescriptionID = prescriptionDto.PrescriptionID,
-                    MedicineName = prescriptionDto.MedicineName,
-                    NoOfDays = prescriptionDto.NoOfDays,
-                    Dosage = prescriptionDto.Dosage,
-                    BeforeAfterFood = prescriptionDto.BeforeAfterFood
-                };
-
-                await prescription1.UpdatePrescriptionAsync(updatedPrescription);
-
-                return NoContent();
-            }
-            catch (PrescriptionNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-
-        }
-
-        // POST: api/Prescriptions
-        [HttpPost]
-        public async Task<ActionResult<PrescriptionDTO>> PostPrescription(PrescriptionDTO prescriptionDto)
-        {
-            // Mapping PrescriptionDTO to Prescription
-            var prescription = new Prescription
-            {
-                MedicineName = prescriptionDto.MedicineName,
-                NoOfDays = prescriptionDto.NoOfDays,
-                Dosage = prescriptionDto.Dosage,
-                BeforeAfterFood = prescriptionDto.BeforeAfterFood
+                PrescriptionID = prescription.PrescriptionID,
+                MedicineID = prescription.MedicineID,
+                TestID = prescription.TestID,
+                MedicineName = prescription.Medicine?.MedicineName,
+                NoOfDays = prescription.NoOfDays,
+                Dosage = prescription.Dosage,
+                BeforeAfterFood = prescription.BeforeAfterFood,
+                Remark = prescription.Remark
             };
 
-            await prescription1.AddPrescriptionAsync(prescription);
-
-           
-            prescriptionDto.PrescriptionID = prescription.PrescriptionID;
-
-            return CreatedAtAction(nameof(GetPrescription), new { id = prescription.PrescriptionID }, prescriptionDto);
+            return Ok(prescriptionDto);
         }
 
-        // DELETE: api/Prescriptions/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePrescription(int id)
+        // POST: api/prescription
+        [Authorize(Roles ="Doctor")]
+        
+        [HttpPost]
+        public async Task<ActionResult<PrescriptionDTO>> AddPrescription(PrescriptionDTO prescriptionDto)
         {
-            try
+            var prescription = new Prescription
             {
-                var prescription = await prescription1.GetPrescriptionByIdAsync(id);
+                // Map properties from DTO to the entity
+                MedicineID = prescriptionDto.MedicineID,
+                TestID = prescriptionDto.TestID,
+                NoOfDays = prescriptionDto.NoOfDays,
+                Dosage = prescriptionDto.Dosage,
+                BeforeAfterFood = prescriptionDto.BeforeAfterFood,
+                Remark = prescriptionDto.Remark
+            };
 
-                if (prescription == null)
-                {
-                    throw new PrescriptionNotFoundException($"Prescription with ID {id} was not found.");
-                }
+            await _prescriptionService.AddPrescriptionAsync(prescription);
+            prescriptionDto.PrescriptionID = prescription.PrescriptionID; // Set the created ID to DTO
 
-                await prescription1.DeletePrescriptionAsync(id);
-
-                return NoContent();
-            }
-            catch (PrescriptionNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-        }
-
-        private async Task<bool> PrescriptionExists(int id)
-        {
-            return await prescription1.GetPrescriptionByIdAsync(id) != null;
+            return CreatedAtAction(nameof(GetPrescriptionById), new { id = prescriptionDto.PrescriptionID }, prescriptionDto);
         }
     }
 }

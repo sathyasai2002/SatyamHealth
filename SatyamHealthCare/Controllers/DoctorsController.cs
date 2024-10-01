@@ -11,6 +11,8 @@ using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using SatyamHealthCare.Repos;
 using SatyamHealthCare.Exceptions;
+using System.Security.Claims;
+using SatyamHealthCare.Constants;
 
 namespace SatyamHealthCare.Controllers
 {
@@ -31,11 +33,29 @@ namespace SatyamHealthCare.Controllers
         // GET: api/Doctors
         [Authorize(Roles = "Admin,Patient")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctors()
+        public async Task<ActionResult<IEnumerable<DoctorDTO>>> GetDoctors()
         {
-            var doctor =  await doctor1.GetAllDoctors();
-            return Ok(doctor);
+            var doctors = await _context.Doctors
+                .Select(d => new DoctorDTO
+                {
+                    DoctorId = d.DoctorId,
+                    FullName = d.FullName,
+                    PhoneNo = d.PhoneNo,
+                    Email = d.Email,
+                    Password = d.Password,
+                    Designation = d.Designation,
+                    Experience = d.Experience,
+                    SpecializationID = d.SpecializationID,
+                    Qualification = d.Qualification
+                })
+                .ToListAsync();
+
+            return Ok(doctors);
         }
+
+
+
+
         // GET: api/Doctors/5
         [Authorize(Roles = "Admin,Patient")]
         [HttpGet("{id}")]
@@ -53,19 +73,41 @@ namespace SatyamHealthCare.Controllers
 
         // PUT: api/Doctors/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDoctor(int id, Doctor doctor)
+        public async Task<IActionResult> PutDoctor(int id, [FromBody] DoctorDTO doctorDto)
         {
-            if (id != doctor.DoctorId)
+            if (id != doctorDto.DoctorId)
             {
                 throw new ArgumentException("Provided doctor ID does not match the request.");
             }
+
+            // Ensure AdminId is present and valid
+            if (doctorDto.AdminId == null || !AdminExists(doctorDto.AdminId))
+            {
+                return BadRequest("Invalid or missing AdminId.");
+            }
+
+            // Map DTO to Doctor entity, including AdminId
+            var doctor = new Doctor
+            {
+                DoctorId = doctorDto.DoctorId,
+                FullName = doctorDto.FullName,
+                PhoneNo = doctorDto.PhoneNo,
+                Email = doctorDto.Email,
+                Password = doctorDto.Password,
+                Designation = doctorDto.Designation,
+                Experience = doctorDto.Experience,
+                SpecializationID = doctorDto.SpecializationID,
+                Qualification = doctorDto.Qualification,
+                AdminId = doctorDto.AdminId // Ensure the AdminId is properly set
+            };
+
+            // Use the injected repository method which internally uses the DbContext
             doctor1.UpdateDoctor(doctor);
 
             try
             {
-                await doctor1.Save();
+                await doctor1.Save(); // Make sure this method does not share DbContext across threads
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -81,6 +123,8 @@ namespace SatyamHealthCare.Controllers
 
             return NoContent();
         }
+
+
 
         // POST: api/Doctors
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -102,7 +146,7 @@ namespace SatyamHealthCare.Controllers
                 Experience = doctorDto.Experience,
                 SpecializationID = doctorDto.SpecializationID,
                 Qualification = doctorDto.Qualification,
-                ProfilePicture = doctorDto.ProfilePicture,
+                
                 AdminId = doctorDto.AdminId
             };
             var createdDoctor = await doctor1.AddDoctor(doctor);
@@ -130,10 +174,128 @@ namespace SatyamHealthCare.Controllers
 
             return Ok();
         }
+        [HttpGet("GetLoggedInDoctorName")]
+        public async Task<IActionResult> GetLoggedInDoctorName()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User is not logged in.");
+            }
+
+            if (!int.TryParse(userId, out int doctorId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
+
+            try
+            {
+                var doctor = await _context.Doctors
+                    .Where(d => d.DoctorId == doctorId)
+                    .Select(d => new { d.FullName, d.Email, }) 
+                    .FirstOrDefaultAsync();
+
+                if (doctor == null)
+                {
+                    return NotFound("Doctor not found.");
+                }
+
+                return Ok(new { FullName = doctor.FullName, Email = doctor.Email }); // Return an object
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (consider using a logging framework)
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+        [Authorize(Roles = "Doctor,Admin")]
+        [HttpGet("GetDoctorAppointmentCounts")]
+        public async Task<IActionResult> GetDoctorAppointmentCounts()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User is not logged in.");
+            }
+
+            if (!int.TryParse(userId, out int doctorId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
+
+            try
+            {
+                var totalAppointments = await _context.Appointments
+                    .CountAsync(a => a.DoctorId == doctorId);
+
+                var pendingAppointments = await _context.Appointments
+                    .CountAsync(a => a.DoctorId == doctorId && a.Status == Status.AppointmentStatus.Pending);
+
+              
+                var rescheduledAppointments = await _context.Appointments
+                    .CountAsync(a => a.DoctorId == doctorId && a.Status == Status.AppointmentStatus.Rescheduled);
+
+                var response = new
+                {
+                    TotalAppointments = totalAppointments,
+                    PendingAppointments = pendingAppointments,
+                    RescheduledAppointments = rescheduledAppointments
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        // GET: api/Doctors/GetTodayAppointments
+        [Authorize(Roles = "Doctor,Admin")]
+        [HttpGet("GetTodayAppointments")]
+        public async Task<IActionResult> GetTodayAppointments()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User is not logged in.");
+            }
+
+            if (!int.TryParse(userId, out int doctorId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
+
+            try
+            {
+                var today = DateTime.Today;
+
+                var appointments = await _context.Appointments
+                    .Where(a => a.AppointmentDate.HasValue && a.AppointmentDate.Value.Date == today && a.DoctorId == doctorId)
+                    .Select(a => new
+                    {
+                        a.AppointmentId,
+                        PatientName = _context.Patients.Where(p => p.PatientID == a.PatientId).Select(p => p.FullName).FirstOrDefault(),
+                        a.AppointmentTime,
+                        a.PatientId
+                    })
+                    .ToListAsync();
+
+                return Ok(appointments);
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
+        }
 
         private bool DoctorExists(int id)
         {
             return _context.Doctors.Any(e => e.DoctorId == id);
+        }
+        private bool AdminExists(int adminId)
+        {
+            return _context.Admins.Any(e => e.AdminId == adminId);
         }
     }
 }

@@ -27,6 +27,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/Tests
+        [Authorize(Roles = "Doctor")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TestDTO>>> GetTests()
         {
@@ -43,6 +44,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/Tests/5
+        
         [HttpGet("{id}")]
         public async Task<ActionResult<TestDTO>> GetTest(int id)
         {

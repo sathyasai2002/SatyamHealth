@@ -32,9 +32,9 @@ namespace SatyamHealthCare
             builder.Services.AddScoped<IDoctor, DoctorService>();
             builder.Services.AddScoped<IAppointment, AppointmentService>();
             builder.Services.AddScoped<IMedicalRecord, MedicalRecordService>();
-            builder.Services.AddScoped<IPrescription, PrescriptionService>();
+            builder.Services.AddScoped<IMedicalHistoryFile, MedicalHistoryFileService>();
+           builder.Services.AddScoped<IPrescription, PrescriptionService>();
             builder.Services.AddScoped<ITest, TestService>();
-            builder.Services.AddScoped<IPrescribedTest, PrescribedTestService>();
             builder.Services.AddScoped<ILogin, LoginCredService>();
             builder.Services.AddTransient<IEmailService, EmailService>();
             builder.Services.AddTransient<ISmsService, SmsService>();
@@ -124,10 +124,10 @@ namespace SatyamHealthCare
                 });
             });
             builder.Services.AddControllers().AddJsonOptions(options =>
-            {
-                // options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-                options.JsonSerializerOptions.ReferenceHandler = null;
-            });
+           {
+                //options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+               options.JsonSerializerOptions.ReferenceHandler = null;
+           });
      
             var app = builder.Build();
 

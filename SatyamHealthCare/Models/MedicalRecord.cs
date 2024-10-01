@@ -26,7 +26,6 @@ namespace SatyamHealthCare.Models
         [Required]
         public int PrescriptionID { get; set; }
 
-        // Foreign Keys and Navigation Properties
       
         public Patient? Patient { get; set; }
 
@@ -34,9 +33,6 @@ namespace SatyamHealthCare.Models
         public Doctor? Doctor { get; set; }
 
  
-        public Prescription? Prescription { get; set; }
-
-        public virtual ICollection<PrescribedTest>? PrescribedTests { get; set; } = new List<PrescribedTest>();
-        public virtual ICollection<Prescription>? Prescriptions { get; set; } = new List<Prescription>();
+       // public virtual ICollection<Prescription>? Prescriptions { get; set; } = new List<Prescription>();
     }
 }

@@ -1,37 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.DTO;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
-using SatyamHealthCare.DTO;
 
 namespace SatyamHealthCare.Controllers
 {
-    [Authorize(Roles = "Doctor,Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class TestsController : ControllerBase
     {
-        private readonly SatyamDbContext _context;
-        private readonly ITest test1;
+        private readonly ITest _testService;
 
-        public TestsController(SatyamDbContext context, ITest test1)
+        public TestsController(ITest testService)
         {
-            _context = context;
-            this.test1 = test1;
+            _testService = testService;
         }
 
         // GET: api/Tests
-        [Authorize(Roles = "Doctor")]
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TestDTO>>> GetTests()
         {
-            var tests = await test1.GetAllTestsAsync();
+            var tests = await _testService.GetAllTestsAsync();
 
             // Mapping Test to TestDTO
             var testDtos = tests.Select(t => new TestDTO
@@ -46,97 +39,59 @@ namespace SatyamHealthCare.Controllers
         // GET: api/Tests/5
         
         [HttpGet("{id}")]
-        public async Task<ActionResult<TestDTO>> GetTest(int id)
+        public async Task<ActionResult<Test>> GetTest(int id)
         {
-            var test = await test1.GetTestByIdAsync(id);
+            var test = await _testService.GetTestByIdAsync(id);
 
             if (test == null)
             {
                 return NotFound();
             }
 
-            // Mapping Test to TestDTO
-            var testDto = new TestDTO
-            {
-                TestID = test.TestID,
-                TestName = test.TestName
-            };
-
-            return Ok(testDto);
+            return test;
         }
 
         // PUT: api/Tests/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTest(int id, TestDTO testDto)
+        public async Task<IActionResult> PutTest(int id, Test test)
         {
-            if (id != testDto.TestID)
+            if (id != test.TestID)
             {
                 return BadRequest();
             }
 
-            // Mapping TestDTO to Test
-            var test = new Test
-            {
-                TestID = testDto.TestID,
-                TestName = testDto.TestName
-            };
-
-            try
-            {
-                await test1.UpdateTestAsync(test);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await TestExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _testService.UpdateTestAsync(test);
 
             return NoContent();
         }
 
         // POST: api/Tests
         [HttpPost]
-        public async Task<ActionResult<TestDTO>> PostTest(TestDTO testDto)
+        public async Task<ActionResult<Test>> PostTest(Test test)
         {
-            // Mapping TestDTO to Test
-            var test = new Test
-            {
-                TestName = testDto.TestName
-            };
+            await _testService.AddTestAsync(test);
 
-            await test1.AddTestAsync(test);
-
-            // Mapping back to TestDTO for the response
-            testDto.TestID = test.TestID;
-
-            return CreatedAtAction(nameof(GetTest), new { id = test.TestID }, testDto);
+            return CreatedAtAction("GetTest", new { id = test.TestID }, test);
         }
 
         // DELETE: api/Tests/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTest(int id)
         {
-            var test = await test1.GetTestByIdAsync(id);
-
+            var test = await _testService.GetTestByIdAsync(id);
             if (test == null)
             {
                 return NotFound();
             }
 
-            await test1.DeleteTestAsync(id);
+            await _testService.DeleteTestAsync(id);
 
             return NoContent();
         }
 
-        private async Task<bool> TestExists(int id)
+        private bool TestExists(int id)
         {
-            return await test1.GetTestByIdAsync(id) != null;
+            return _testService.GetTestByIdAsync(id) != null;
         }
     }
 }

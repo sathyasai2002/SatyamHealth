@@ -32,7 +32,7 @@ namespace SatyamHealthCare.Controllers
             this.notificationService1 = notificationService1;
         }
 
-        [Authorize]
+        [Authorize(Roles = "Doctor")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointments()
         {
@@ -157,6 +157,7 @@ namespace SatyamHealthCare.Controllers
                     AppointmentId = a.AppointmentId,
                     PatientId = a.PatientId,
                     DoctorId = a.DoctorId,
+                    DoctorName = a.Doctor.FullName,
                     AppointmentDate = a.AppointmentDate,
                     AppointmentTime = a.AppointmentTime,
                     Status = a.Status,
@@ -181,7 +182,7 @@ namespace SatyamHealthCare.Controllers
 
         // PUT: api/Appointments/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "Doctor,Admin")]
+        [Authorize(Roles = "Doctor,Patient")]
         [HttpPut("reschedule")]
         public async Task<IActionResult> RescheduleAppointment(RescheduleAppointmentDTO rescheduleDTO)
         {
@@ -195,16 +196,27 @@ namespace SatyamHealthCare.Controllers
                 return NotFound("Appointment not found");
             }
 
-            // Check if the appointment is already completed or cancelled
             if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled)
             {
                 return BadRequest("Cannot reschedule a completed or cancelled appointment");
             }
 
-            // Update the appointment
+         
+            var isSlotBooked = await _context.Appointments
+                .AnyAsync(a => a.AppointmentDate == rescheduleDTO.NewAppointmentDate.Value &&
+                               a.AppointmentTime == rescheduleDTO.NewAppointmentTime.Value &&
+                               a.AppointmentId != rescheduleDTO.AppointmentId && 
+                               a.Status != AppointmentStatus.Cancelled);
+
+            if (isSlotBooked)
+            {
+                return BadRequest("The selected time slot is already booked. Please choose a different time.");
+            }
+
             appointment.AppointmentDate = rescheduleDTO.NewAppointmentDate.Value;
             appointment.AppointmentTime = rescheduleDTO.NewAppointmentTime.Value;
             appointment.Status = AppointmentStatus.Rescheduled;
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -239,9 +251,9 @@ namespace SatyamHealthCare.Controllers
             }
         }
 
-       
-    
-   
+
+
+
 
         // POST: api/Appointments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -317,11 +329,22 @@ namespace SatyamHealthCare.Controllers
             {
                 return BadRequest(ModelState);
             }
+            if (!appointmentDto.AppointmentDate.HasValue)
+            {
+                return BadRequest("Appointment date is required.");
+            }
+            TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+            DateTime istDate = TimeZoneInfo.ConvertTimeFromUtc(appointmentDto.AppointmentDate.Value.ToUniversalTime(), istZone);
 
+            istDate = istDate.Date;
+            if (istDate < TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone).Date)
+            {
+                return BadRequest("Appointment date cannot be in the past.");
+            }
 
             bool isTimeSlotTaken = await _context.Appointments
                 .AnyAsync(a => a.DoctorId == appointmentDto.DoctorId &&
-                               a.AppointmentDate == appointmentDto.AppointmentDate &&
+                               a.AppointmentDate == istDate &&
                                a.AppointmentTime == appointmentDto.AppointmentTime &&
                                a.Symptoms == appointmentDto.Symptoms);
 
@@ -336,10 +359,10 @@ namespace SatyamHealthCare.Controllers
             {
                 PatientId = appointmentDto.PatientId,
                 DoctorId = appointmentDto.DoctorId,
-                AppointmentDate = appointmentDto.AppointmentDate,
+                AppointmentDate = istDate,
                 AppointmentTime = appointmentDto.AppointmentTime,
                 Status = appointmentDto.Status,
-                Symptoms =appointmentDto.Symptoms
+                Symptoms = appointmentDto.Symptoms
             };
 
             try
@@ -432,7 +455,31 @@ namespace SatyamHealthCare.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-    
+
+        [Authorize(Roles ="Doctor")]
+        [HttpPut("{appointmentId}/status")]
+        public async Task<IActionResult> UpdateAppointmentStatus(int appointmentId, [FromBody] UpdatestatusDTO updateStatusDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await appointment1.UpdateAppointmentStatusAsync(appointmentId, updateStatusDto.Status.ToString());
+            if (!result)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
+
+
+
+
+
+
+
         private bool AppointmentExists(int id)
         {
             return _context.Appointments.Any(e => e.AppointmentId == id);

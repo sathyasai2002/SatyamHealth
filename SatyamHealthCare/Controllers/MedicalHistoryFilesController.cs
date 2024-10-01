@@ -12,6 +12,7 @@ using SatyamHealthCare.Exceptions;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 namespace SatyamHealthCare.Controllers
 {
     [Authorize(Roles = "Admin,Patient,Doctor")]
@@ -112,7 +113,6 @@ namespace SatyamHealthCare.Controllers
             return NoContent();
         }
 
-        // POST: api/MedicalHistoryFiles
         [Authorize(Roles = "Patient")]
         [HttpPost]
         public async Task<IActionResult> CreateMedicalHistory([FromBody] MedicalHistoryFileDTO medicalHistoryDTO)
@@ -122,10 +122,19 @@ namespace SatyamHealthCare.Controllers
                 return BadRequest(ModelState);
             }
 
+            // Get the PatientId from the JWT claims
+            var patientIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (patientIdClaim == null)
+            {
+                return Unauthorized("User not found");
+            }
+
+            int patientId = int.Parse(patientIdClaim.Value);
+
             // Map DTO to Entity and save to the database
             var medicalHistory = new MedicalHistoryFile
             {
-                PatientId = medicalHistoryDTO.PatientId,
+                PatientId = patientId,
                 HasChronicConditions = medicalHistoryDTO.HasChronicConditions,
                 ChronicConditions = medicalHistoryDTO.ChronicConditions,
                 HasAllergies = medicalHistoryDTO.HasAllergies,
@@ -145,6 +154,55 @@ namespace SatyamHealthCare.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetMedicalHistoryFile), new { id = medicalHistory.MedicalHistoryId }, medicalHistory);
+        }
+
+        [Authorize(Roles = "Patient")]
+        [HttpGet("my")]
+        public async Task<ActionResult<MedicalHistoryFileDTO>> GetMyMedicalHistory()
+        {
+            var patientIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (patientIdClaim == null)
+            {
+                return Unauthorized("User not found");
+            }
+
+            int patientId = int.Parse(patientIdClaim.Value); 
+
+            var medicalHistory = await _context.MedicalHistoryFiles
+                .Where(m => m.PatientId == patientId)
+                .ToListAsync();
+
+            if (medicalHistory == null || !medicalHistory.Any())
+            {
+                return NotFound("No medical history found for this patient.");
+            }
+
+            var firstRecord = medicalHistory.First();
+
+            var medicalHistoryDTO = new MedicalHistoryFileDTO
+            {
+                MedicalHistoryId = firstRecord.MedicalHistoryId,
+                PatientId = firstRecord.PatientId,
+                HasChronicConditions = firstRecord.HasChronicConditions,
+                ChronicConditions = firstRecord.ChronicConditions,
+                HasAllergies = firstRecord.HasAllergies,
+                Allergies = firstRecord.Allergies,
+                TakesMedications = firstRecord.TakesMedications,
+                Medications = firstRecord.Medications,
+                HadSurgeries = firstRecord.HadSurgeries,
+                Surgeries = firstRecord.Surgeries,
+                HasFamilyHistory = firstRecord.HasFamilyHistory,
+                FamilyHistory = firstRecord.FamilyHistory,
+                HasLifestyleFactors = firstRecord.HasLifestyleFactors,
+                LifestyleFactors = firstRecord.LifestyleFactors,
+                VaccinationRecords = firstRecord.VaccinationRecords,
+            };
+
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.Preserve
+            };
+            return new JsonResult(medicalHistoryDTO, options);
         }
 
         private bool MedicalHistoryFileExists(int id)

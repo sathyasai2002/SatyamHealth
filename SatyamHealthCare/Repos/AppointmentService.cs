@@ -143,7 +143,35 @@ namespace SatyamHealthCare.Repos
          .ToListAsync();
  }
 
-     
+
+
+
+
+        public async Task<bool> UpdateAppointmentStatusAsync(int appointmentId, string status)
+        {
+            
+            if (!Enum.TryParse(typeof(Constants.Status.AppointmentStatus), status, true, out var appointmentStatus))
+            {
+                return false; 
+            }
+
+            var appointment = await _context.Appointments.FindAsync(appointmentId);
+            if (appointment == null)
+            {
+                return false; 
+            }
+            
+            appointment.Status = (Constants.Status.AppointmentStatus)appointmentStatus;
+
+            
+            _context.Appointments.Update(appointment);
+            await _context.SaveChangesAsync();
+
+            return true; 
+        }
+
+
+
 
     }
 

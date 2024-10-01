@@ -33,5 +33,8 @@ namespace SatyamHealthCare.Models
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
 
         public string Symptoms { get; set; }
+
+        public virtual ICollection<Prescription> Prescriptions { get; set; }
+
     }
 }

@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SatyamHealthCare.DTOs;
 using SatyamHealthCare.IRepos;
@@ -14,36 +13,36 @@ namespace SatyamHealthCare.Controllers
     [ApiController]
     public class PrescriptionsController : ControllerBase
     {
-        private readonly SatyamDbContext _context;
         private readonly IPrescription _prescriptionService;
 
-        public PrescriptionsController(SatyamDbContext context, IPrescription prescriptionService)
+        public PrescriptionsController(IPrescription prescriptionService)
         {
-            _context = context;
             _prescriptionService = prescriptionService;
         }
 
+        // GET: api/prescriptions
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PrescriptionDTO>>> GetAllPrescriptions()
         {
             var prescriptions = await _prescriptionService.GetAllPrescriptionsAsync();
+
             // Map to DTOs
             var prescriptionDtos = prescriptions.Select(p => new PrescriptionDTO
             {
                 PrescriptionID = p.PrescriptionID,
-                MedicineID = p.MedicineID,
-                TestID = p.TestID,
-                MedicineName = p.Medicine?.MedicineName, // Accessing MedicineName via navigation property
                 NoOfDays = p.NoOfDays,
                 Dosage = p.Dosage,
                 BeforeAfterFood = p.BeforeAfterFood,
-                Remark = p.Remark
+                Remark = p.Remark,
+                MedicineIDs = p.PrescriptionMedicines.Select(pm => pm.MedicineID).ToList(),
+                TestIDs = p.PrescriptionTests.Select(pt => pt.TestID).ToList()
             }).ToList();
 
             return Ok(prescriptionDtos);
         }
 
-        // GET: api/prescription/{id}
+        // GET: api/prescriptions/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<PrescriptionDTO>> GetPrescriptionById(int id)
         {
@@ -52,43 +51,53 @@ namespace SatyamHealthCare.Controllers
             {
                 return NotFound();
             }
+
             // Map to DTO
             var prescriptionDto = new PrescriptionDTO
             {
                 PrescriptionID = prescription.PrescriptionID,
-                MedicineID = prescription.MedicineID,
-                TestID = prescription.TestID,
-                MedicineName = prescription.Medicine?.MedicineName,
                 NoOfDays = prescription.NoOfDays,
                 Dosage = prescription.Dosage,
                 BeforeAfterFood = prescription.BeforeAfterFood,
-                Remark = prescription.Remark
+                Remark = prescription.Remark,
+                MedicineIDs = prescription.PrescriptionMedicines.Select(pm => pm.MedicineID).ToList(),
+                TestIDs = prescription.PrescriptionTests.Select(pt => pt.TestID).ToList()
             };
 
             return Ok(prescriptionDto);
         }
 
-        // POST: api/prescription
-        [Authorize(Roles ="Doctor")]
-        
+        // POST: api/prescriptions
+        [Authorize(Roles = "Doctor")]
         [HttpPost]
-        public async Task<ActionResult<PrescriptionDTO>> AddPrescription(PrescriptionDTO prescriptionDto)
+        public async Task<ActionResult<PrescriptionDTO>> AddPrescription([FromBody] PrescriptionDTO prescriptionDto)
         {
             var prescription = new Prescription
             {
-                // Map properties from DTO to the entity
-                MedicineID = prescriptionDto.MedicineID,
-                TestID = prescriptionDto.TestID,
                 NoOfDays = prescriptionDto.NoOfDays,
                 Dosage = prescriptionDto.Dosage,
                 BeforeAfterFood = prescriptionDto.BeforeAfterFood,
-                Remark = prescriptionDto.Remark
+                Remark = prescriptionDto.Remark,
+                PrescriptionMedicines = prescriptionDto.MedicineIDs
+                    .Select(id => new PrescriptionMedicine { MedicineID = id }).ToList(),
+                PrescriptionTests = prescriptionDto.TestIDs
+                    .Select(id => new PrescriptionTest { TestID = id }).ToList(),
+                AppointmentId = prescriptionDto.AppointmentId
             };
 
             await _prescriptionService.AddPrescriptionAsync(prescription);
-            prescriptionDto.PrescriptionID = prescription.PrescriptionID; // Set the created ID to DTO
+            prescriptionDto.PrescriptionID = prescription.PrescriptionID;
 
             return CreatedAtAction(nameof(GetPrescriptionById), new { id = prescriptionDto.PrescriptionID }, prescriptionDto);
         }
+
+       
+        }
+
+      
+
+
+
+
     }
-}
+

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SatyamHealthCare.Models;
 
@@ -11,9 +12,11 @@ using SatyamHealthCare.Models;
 namespace SatyamHealthCare.Migrations
 {
     [DbContext(typeof(SatyamDbContext))]
-    partial class SatyamDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241001043314_final")]
+    partial class final
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -523,7 +526,7 @@ namespace SatyamHealthCare.Migrations
                     b.Navigation("Prescription");
                 });
 
-            modelBuilder.Entity("SatyamHealthCare.Models.PrescribedTest", b =>
+            modelBuilder.Entity("SatyamHealthCare.Models.PrescriptionTest", b =>
                 {
                     b.HasOne("Prescription", "Prescription")
                         .WithMany("PrescriptionTests")

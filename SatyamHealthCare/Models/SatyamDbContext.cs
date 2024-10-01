@@ -67,20 +67,42 @@ namespace SatyamHealthCare.Models
                   .HasOne(mr => mr.Prescription)
                   .WithMany()
                   .HasForeignKey(mr => mr.PrescriptionID);*/
-            modelBuilder.Entity<Prescription>()
-                  .HasOne(p => p.Medicine)
-                  .WithMany(m => m.Prescriptions)
-                  .HasForeignKey(p => p.MedicineID);
+            modelBuilder.Entity<PrescriptionMedicine>()
+       .HasKey(pm => new { pm.PrescriptionID, pm.MedicineID });
 
-            modelBuilder.Entity<Prescription>()
-                .HasOne(p => p.Test)
-                .WithMany(t => t.Prescriptions)
-                .HasForeignKey(p => p.TestID);
+            modelBuilder.Entity<PrescriptionMedicine>()
+                .HasOne(pm => pm.Prescription)
+                .WithMany(p => p.PrescriptionMedicines)
+                .HasForeignKey(pm => pm.PrescriptionID);
+
+            modelBuilder.Entity<PrescriptionMedicine>()
+                .HasOne(pm => pm.Medicine)
+                .WithMany(m => m.PrescriptionMedicines)
+                .HasForeignKey(pm => pm.MedicineID);
+
+            modelBuilder.Entity<PrescriptionTest>()
+                .HasKey(pt => new { pt.PrescriptionID, pt.TestID });
+
+            modelBuilder.Entity<PrescriptionTest>()
+                .HasOne(pt => pt.Prescription)
+                .WithMany(p => p.PrescriptionTests)
+                .HasForeignKey(pt => pt.PrescriptionID);
+
+            modelBuilder.Entity<PrescriptionTest>()
+                .HasOne(pt => pt.Test)
+                .WithMany(t => t.PrescriptionTests)
+                .HasForeignKey(pt => pt.TestID);
+
 
             modelBuilder.Entity<MedicalHistoryFile>()
                 .HasOne(mhf => mhf.Patient)
                 .WithMany(p => p.MedicalHistoryFiles)
                 .HasForeignKey(mhf => mhf.PatientId);
+
+            modelBuilder.Entity<Prescription>()
+          .HasOne(p => p.Appointment)
+          .WithMany(a => a.Prescriptions)
+          .HasForeignKey(p => p.AppointmentId);
 
            /* modelBuilder.Entity<Prescription>()
                 .HasMany<MedicalRecord>()

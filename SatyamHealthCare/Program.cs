@@ -11,6 +11,8 @@ using SatyamHealthCare.Models;
 using SatyamHealthCare.Repos;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
+using DinkToPdf.Contracts;
+using DinkToPdf;
 
 namespace SatyamHealthCare
 {
@@ -39,6 +41,7 @@ namespace SatyamHealthCare
             builder.Services.AddTransient<IEmailService, EmailService>();
             builder.Services.AddTransient<ISmsService, SmsService>();
             builder.Services.AddTransient<INotificationService, NotificationService>();
+            builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 
 
             builder.Services.AddControllers()

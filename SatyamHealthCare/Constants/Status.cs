@@ -6,7 +6,6 @@
         {
             Pending,
             Rescheduled,
-            Rejected,
             Cancelled,
             Completed
         }

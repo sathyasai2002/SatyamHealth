@@ -32,7 +32,7 @@ namespace SatyamHealthCare.DTO
         [Required]
         public string Qualification { get; set; }
 
-        
+        public string? SpecializationName { get; set; }
 
         [Required]
         public int AdminId { get; set; }

@@ -12,6 +12,6 @@ namespace SatyamHealthCare.Models
         public string MedicineName { get; set; }
 
 
-        public virtual ICollection<Prescription>? Prescriptions { get; set; } = new List<Prescription>();
+        public virtual ICollection<PrescriptionMedicine> PrescriptionMedicines { get; set; }
     }
 }

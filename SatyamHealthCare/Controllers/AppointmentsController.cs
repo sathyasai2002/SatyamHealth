@@ -36,43 +36,72 @@ namespace SatyamHealthCare.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointments()
         {
-            var doctorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (doctorIdClaim == null)
+            var emailClaim = User.FindFirst(ClaimTypes.Email);
+            if (emailClaim == null)
             {
-                return Unauthorized("Doctor ID not found in the token.");
+                return Unauthorized("User email not found in the token.");
             }
 
-            if (!int.TryParse(doctorIdClaim.Value, out int doctorId))
+            // Determine if the user is an admin based on their email
+            bool isAdmin = emailClaim.Value.Contains("admin", StringComparison.OrdinalIgnoreCase);
+
+            if (isAdmin)
             {
-                throw new InvalidDoctorException("Invalid Doctor ID.");
+                // Fetch all appointments for Admin
+                var appointments = await appointment1.GetAllAppointments(); // Ensure this method is defined to get all appointments
+                return Ok(appointments.Select(a => new AppointmentDTO
+                {
+                    AppointmentId = a.AppointmentId,
+                    PatientId = a.PatientId,
+                    DoctorId = a.DoctorId,
+                    AppointmentDate = a.AppointmentDate,
+                    AppointmentTime = a.AppointmentTime,
+                    Status = a.Status,
+                    Symptoms = a.Symptoms,
+                    PatientName = a.Patient?.FullName
+                }).ToList());
             }
-
-            var appointments = await appointment1.GetAppointmentsByDoctorId(doctorId);
-
-            if (appointments == null || !appointments.Any())
+            else
             {
-                throw new AppointmentNotFoundException("No appointments found for this doctor.");
+                // Fetch appointments specific to the doctor for regular users
+                var doctorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (doctorIdClaim == null)
+                {
+                    return Unauthorized("Doctor ID not found in the token.");
+                }
+
+                if (!int.TryParse(doctorIdClaim.Value, out int doctorId))
+                {
+                    throw new InvalidDoctorException("Invalid Doctor ID.");
+                }
+
+                var appointments = await appointment1.GetAppointmentsByDoctorId(doctorId);
+
+                if (appointments == null || !appointments.Any())
+                {
+                    throw new AppointmentNotFoundException("No appointments found for this doctor.");
+                }
+
+                return Ok(appointments.Select(a => new AppointmentDTO
+                {
+                    AppointmentId = a.AppointmentId,
+                    PatientId = a.PatientId,
+                    DoctorId = a.DoctorId,
+                    AppointmentDate = a.AppointmentDate,
+                    AppointmentTime = a.AppointmentTime,
+                    Status = a.Status,
+                    Symptoms = a.Symptoms,
+                    PatientName = a.Patient?.FullName
+                }).ToList());
             }
-
-            var appointmentDtos = appointments.Select(a => new AppointmentDTO
-            {
-                AppointmentId = a.AppointmentId,
-                PatientId = a.PatientId,
-                DoctorId = a.DoctorId,
-                AppointmentDate = a.AppointmentDate,
-                AppointmentTime = a.AppointmentTime,
-                Status = a.Status,
-                Symptoms = a.Symptoms,
-                PatientName = a.Patient?.FullName
-            }).ToList();
-
-            return Ok(appointmentDtos);
         }
 
 
 
+
+
         // GET: api/Appointments/5
-        [Authorize(Roles = "Doctor,Patient")]
+        [Authorize(Roles = "Doctor,Patient,,Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Appointment>> GetAppointment(int id)
         {
@@ -97,7 +126,7 @@ namespace SatyamHealthCare.Controllers
             return Ok(appointmentDto);
         }
 
-        [Authorize(Roles = "Patient")]
+        [Authorize(Roles = "Patient,Admin")]
         [HttpGet("patient/appointments")]
         public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointmentsByPatient()
         {
@@ -287,7 +316,7 @@ namespace SatyamHealthCare.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [Authorize(Roles = "Patient")]
+        [Authorize(Roles = "Patient,Admin")]
         [HttpPost]
         public async Task<ActionResult<Appointment>> PostAppointment(AppointmentDTO appointmentDto)
         {
@@ -374,7 +403,7 @@ namespace SatyamHealthCare.Controllers
 
 
         // DELETE: api/Appointments/5
-        [Authorize(Roles = "Patient,Doctor")]
+        [Authorize(Roles = "Patient,Doctor,Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> CancelAppointment(int id)
         {

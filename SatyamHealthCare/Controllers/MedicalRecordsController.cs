@@ -24,7 +24,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/MedicalRecords
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MedicalRecordDTO>>> GetMedicalRecords()
         {
@@ -50,7 +50,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/MedicalRecords/5
-        [Authorize(Roles = "Patient,Doctor")]
+        [Authorize(Roles = "Patient,Doctor,Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<MedicalRecordDTO>> GetMedicalRecord(int id)
         {
@@ -77,7 +77,7 @@ namespace SatyamHealthCare.Controllers
 
         // PUT: api/MedicalRecords/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutMedicalRecord(int id, MedicalRecordDTO medicalRecordDto)
         {
@@ -119,7 +119,7 @@ namespace SatyamHealthCare.Controllers
         // POST: api/MedicalRecords
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpPost]
         public async Task<ActionResult<MedicalRecordDTO>> PostMedicalRecord(MedicalRecordDTO medicalRecordDto)
         {
@@ -148,7 +148,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // DELETE: api/MedicalRecords/5
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMedicalRecord(int id)
         {

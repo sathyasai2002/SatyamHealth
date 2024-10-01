@@ -37,6 +37,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/Tests/5
+        
         [HttpGet("{id}")]
         public async Task<ActionResult<Test>> GetTest(int id)
         {

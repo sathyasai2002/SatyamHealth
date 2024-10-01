@@ -38,7 +38,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/Patients/5
-        [Authorize(Roles = "Patient")]
+        [Authorize(Roles = "Patient,Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Patient>> GetPatient(int id)
         {
@@ -69,7 +69,7 @@ namespace SatyamHealthCare.Controllers
 
         // PUT: api/Patients/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "Patient")]
+        [Authorize(Roles = "Patient,Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePatient(int id, PatientUpdateDTO patientUpdateDTO)
         {
@@ -160,7 +160,7 @@ namespace SatyamHealthCare.Controllers
 
         // DELETE: api/Patients/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Patient")]
+        [Authorize(Roles = "Patient,Admin")]
 
         public async Task<IActionResult> DeletePatient(int id)
         {

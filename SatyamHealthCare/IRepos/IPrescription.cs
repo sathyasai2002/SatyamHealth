@@ -7,6 +7,5 @@ namespace SatyamHealthCare.IRepos
         Task<IEnumerable<Prescription>> GetAllPrescriptionsAsync();
         Task<Prescription?> GetPrescriptionById(int id);
         Task AddPrescriptionAsync(Prescription prescription);
-
     }
 }

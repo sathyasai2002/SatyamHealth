@@ -204,6 +204,7 @@ namespace SatyamHealthCare.Controllers
             };
             return new JsonResult(medicalHistoryDTO, options);
         }
+
         private bool MedicalHistoryFileExists(int id)
         {
             return _medicalHistoryFileRepo.GetById(id) != null;

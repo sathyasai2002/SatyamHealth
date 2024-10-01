@@ -33,11 +33,29 @@ namespace SatyamHealthCare.Controllers
         // GET: api/Doctors
         [Authorize(Roles = "Admin,Patient")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctors()
+        public async Task<ActionResult<IEnumerable<DoctorDTO>>> GetDoctors()
         {
-            var doctor =  await doctor1.GetAllDoctors();
-            return Ok(doctor);
+            var doctors = await _context.Doctors
+                .Select(d => new DoctorDTO
+                {
+                    DoctorId = d.DoctorId,
+                    FullName = d.FullName,
+                    PhoneNo = d.PhoneNo,
+                    Email = d.Email,
+                    Password = d.Password,
+                    Designation = d.Designation,
+                    Experience = d.Experience,
+                    SpecializationID = d.SpecializationID,
+                    Qualification = d.Qualification
+                })
+                .ToListAsync();
+
+            return Ok(doctors);
         }
+
+
+
+
         // GET: api/Doctors/5
         [Authorize(Roles = "Admin,Patient")]
         [HttpGet("{id}")]
@@ -55,19 +73,41 @@ namespace SatyamHealthCare.Controllers
 
         // PUT: api/Doctors/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDoctor(int id, Doctor doctor)
+        public async Task<IActionResult> PutDoctor(int id, [FromBody] DoctorDTO doctorDto)
         {
-            if (id != doctor.DoctorId)
+            if (id != doctorDto.DoctorId)
             {
                 throw new ArgumentException("Provided doctor ID does not match the request.");
             }
+
+            // Ensure AdminId is present and valid
+            if (doctorDto.AdminId == null || !AdminExists(doctorDto.AdminId))
+            {
+                return BadRequest("Invalid or missing AdminId.");
+            }
+
+            // Map DTO to Doctor entity, including AdminId
+            var doctor = new Doctor
+            {
+                DoctorId = doctorDto.DoctorId,
+                FullName = doctorDto.FullName,
+                PhoneNo = doctorDto.PhoneNo,
+                Email = doctorDto.Email,
+                Password = doctorDto.Password,
+                Designation = doctorDto.Designation,
+                Experience = doctorDto.Experience,
+                SpecializationID = doctorDto.SpecializationID,
+                Qualification = doctorDto.Qualification,
+                AdminId = doctorDto.AdminId // Ensure the AdminId is properly set
+            };
+
+            // Use the injected repository method which internally uses the DbContext
             doctor1.UpdateDoctor(doctor);
 
             try
             {
-                await doctor1.Save();
+                await doctor1.Save(); // Make sure this method does not share DbContext across threads
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -83,6 +123,8 @@ namespace SatyamHealthCare.Controllers
 
             return NoContent();
         }
+
+
 
         // POST: api/Doctors
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -158,7 +200,7 @@ namespace SatyamHealthCare.Controllers
                     return NotFound("Doctor not found.");
                 }
 
-                return Ok(new { FullName = doctor.FullName, Email = doctor.Email });
+                return Ok(new { FullName = doctor.FullName, Email = doctor.Email }); // Return an object
             }
             catch (Exception ex)
             {
@@ -166,7 +208,7 @@ namespace SatyamHealthCare.Controllers
                 return StatusCode(500, "Internal server error.");
             }
         }
-        [Authorize(Roles ="Doctor")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpGet("GetDoctorAppointmentCounts")]
         public async Task<IActionResult> GetDoctorAppointmentCounts()
         {
@@ -193,15 +235,11 @@ namespace SatyamHealthCare.Controllers
                 var rescheduledAppointments = await _context.Appointments
                     .CountAsync(a => a.DoctorId == doctorId && a.Status == Status.AppointmentStatus.Rescheduled);
 
-                var completedAppointments = await _context.Appointments
-                  .CountAsync(a => a.DoctorId == doctorId && a.Status == Status.AppointmentStatus.Completed);
-
                 var response = new
                 {
                     TotalAppointments = totalAppointments,
                     PendingAppointments = pendingAppointments,
-                    RescheduledAppointments = rescheduledAppointments,
-                    CompletedAppointments = completedAppointments
+                    RescheduledAppointments = rescheduledAppointments
                 };
 
                 return Ok(response);
@@ -213,7 +251,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/Doctors/GetTodayAppointments
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpGet("GetTodayAppointments")]
         public async Task<IActionResult> GetTodayAppointments()
         {
@@ -239,14 +277,13 @@ namespace SatyamHealthCare.Controllers
                         a.AppointmentId,
                         PatientName = _context.Patients.Where(p => p.PatientID == a.PatientId).Select(p => p.FullName).FirstOrDefault(),
                         a.AppointmentTime,
-                        a.PatientId,
-                        a.Status
+                        a.PatientId
                     })
                     .ToListAsync();
 
                 return Ok(appointments);
             }
-            catch (Exception ex)
+            catch (Exception ex) 
             {
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
@@ -255,6 +292,10 @@ namespace SatyamHealthCare.Controllers
         private bool DoctorExists(int id)
         {
             return _context.Doctors.Any(e => e.DoctorId == id);
+        }
+        private bool AdminExists(int adminId)
+        {
+            return _context.Admins.Any(e => e.AdminId == adminId);
         }
     }
 }

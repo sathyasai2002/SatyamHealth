@@ -523,7 +523,7 @@ namespace SatyamHealthCare.Migrations
                     b.Navigation("Prescription");
                 });
 
-            modelBuilder.Entity("SatyamHealthCare.Models.PrescriptionTest", b =>
+            modelBuilder.Entity("SatyamHealthCare.Models.PrescribedTest", b =>
                 {
                     b.HasOne("Prescription", "Prescription")
                         .WithMany("PrescriptionTests")

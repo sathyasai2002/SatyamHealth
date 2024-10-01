@@ -70,7 +70,7 @@ namespace SatyamHealthCare.Repos
             try
             {
                 _context.Entry(doctor).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {

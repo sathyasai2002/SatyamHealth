@@ -99,15 +99,14 @@ namespace SatyamHealthCare.Controllers
                 Experience = doctorDto.Experience,
                 SpecializationID = doctorDto.SpecializationID,
                 Qualification = doctorDto.Qualification,
-                AdminId = doctorDto.AdminId // Ensure the AdminId is properly set
+                AdminId = doctorDto.AdminId 
             };
 
-            // Use the injected repository method which internally uses the DbContext
             doctor1.UpdateDoctor(doctor);
 
             try
             {
-                await doctor1.Save(); // Make sure this method does not share DbContext across threads
+                await doctor1.Save();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -200,11 +199,10 @@ namespace SatyamHealthCare.Controllers
                     return NotFound("Doctor not found.");
                 }
 
-                return Ok(new { FullName = doctor.FullName, Email = doctor.Email }); // Return an object
+                return Ok(new { FullName = doctor.FullName, Email = doctor.Email });
             }
             catch (Exception ex)
             {
-                // Log the exception (consider using a logging framework)
                 return StatusCode(500, "Internal server error.");
             }
         }

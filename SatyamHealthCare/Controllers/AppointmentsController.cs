@@ -32,7 +32,7 @@ namespace SatyamHealthCare.Controllers
             this.notificationService1 = notificationService1;
         }
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointments()
         {

@@ -63,6 +63,13 @@ namespace SatyamHealthCare.Models
                 .WithOne(mr => mr.Doctor)
                 .HasForeignKey(mr => mr.DoctorID);
 
+
+            modelBuilder.Entity<MedicalRecord>()
+            .HasOne(mr => mr.MedicalHistoryFile)
+            .WithMany(mhf => mhf.MedicalRecords)
+            .HasForeignKey(mr => mr.MedicalHistoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
             /*  modelBuilder.Entity<MedicalRecord>()
                   .HasOne(mr => mr.Prescription)
                   .WithMany()

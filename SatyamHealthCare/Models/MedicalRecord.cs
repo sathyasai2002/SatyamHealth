@@ -15,18 +15,16 @@ namespace SatyamHealthCare.Models
         [Required]
         public int DoctorID { get; set; }
 
-        [Required]
-        [DataType(DataType.Date)]
-        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
-        public DateTime ConsultationDateTime { get; set; }
-
         [MaxLength(500)]
         public string Diagnosis { get; set; }
 
         [Required]
         public int PrescriptionID { get; set; }
 
-      
+        public int MedicalHistoryId { get; set; }
+
+        public MedicalHistoryFile? MedicalHistoryFile { get; set; }
+
         public Patient? Patient { get; set; }
 
        

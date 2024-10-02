@@ -26,6 +26,7 @@ namespace SatyamHealthCare.Repos
             return await _context.Patients.AsNoTracking().FirstOrDefaultAsync(p => p.PatientID == id);
         }
 
+        
         // Add a new Patient
         public async Task<Patient> AddPatient(Patient patient)
         {

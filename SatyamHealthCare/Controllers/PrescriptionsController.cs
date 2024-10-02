@@ -19,7 +19,7 @@ namespace SatyamHealthCare.Controllers
         {
             _prescriptionService = prescriptionService;
         }
-
+        [Authorize(Roles = "Admin")]
         // GET: api/prescriptions
         [Authorize]
         [HttpGet]
@@ -41,7 +41,7 @@ namespace SatyamHealthCare.Controllers
 
             return Ok(prescriptionDtos);
         }
-
+        [Authorize(Roles = "Admin")]
         // GET: api/prescriptions/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<PrescriptionDTO>> GetPrescriptionById(int id)

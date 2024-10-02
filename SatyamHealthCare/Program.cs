@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 using DinkToPdf.Contracts;
 using DinkToPdf;
+using SatyamHealthCare.Repositories;
 
 namespace SatyamHealthCare
 {
@@ -35,7 +36,8 @@ namespace SatyamHealthCare
             builder.Services.AddScoped<IAppointment, AppointmentService>();
             builder.Services.AddScoped<IMedicalRecord, MedicalRecordService>();
             builder.Services.AddScoped<IMedicalHistoryFile, MedicalHistoryFileService>();
-           builder.Services.AddScoped<IPrescription, PrescriptionService>();
+            builder.Services.AddScoped<ISpecialization, SpecializationService>();
+            builder.Services.AddScoped<IPrescription, PrescriptionService>();
             builder.Services.AddScoped<ITest, TestService>();
             builder.Services.AddScoped<ILogin, LoginCredService>();
             builder.Services.AddTransient<IEmailService, EmailService>();

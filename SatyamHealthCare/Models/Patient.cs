@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace SatyamHealthCare.Models
 {
@@ -52,6 +53,8 @@ namespace SatyamHealthCare.Models
 
         public ICollection<Appointment>? Appointments { get; set; } = new List<Appointment>();
         public ICollection<MedicalRecord>? MedicalRecords { get; set; }= new List<MedicalRecord>();
+
+        [JsonIgnore]
         public ICollection<MedicalHistoryFile>? MedicalHistoryFiles { get; set; }= new List<MedicalHistoryFile>();
     }
 }

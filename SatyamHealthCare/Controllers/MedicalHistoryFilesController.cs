@@ -30,7 +30,7 @@ namespace SatyamHealthCare.Controllers
         }
 
         // GET: api/MedicalHistoryFiles
-        [Authorize(Roles = "Doctor,Patient")]
+        [Authorize(Roles = "Doctor,Patient,Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MedicalHistoryFile>>> GetMedicalHistoryFiles()
         {
@@ -52,7 +52,7 @@ namespace SatyamHealthCare.Controllers
 
         // GET: api/MedicalHistoryFiles/patient/{patientId}
 
-        [Authorize(Roles ="Doctor,Patient")]
+        [Authorize(Roles = "Doctor,Patient,Admin")]
         [HttpGet("patient/{patientId}")]
         public async Task<ActionResult<MedicalHistoryFileDTO>> GetMedicalHistory(int patientId)
         {

@@ -32,7 +32,7 @@ namespace SatyamHealthCare.Controllers
             this.notificationService1 = notificationService1;
         }
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointments()
         {
@@ -101,7 +101,7 @@ namespace SatyamHealthCare.Controllers
 
 
         // GET: api/Appointments/5
-        [Authorize(Roles = "Doctor,Patient,,Admin")]
+        [Authorize(Roles = "Doctor,Patient,Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Appointment>> GetAppointment(int id)
         {
@@ -182,7 +182,7 @@ namespace SatyamHealthCare.Controllers
 
         // PUT: api/Appointments/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "Doctor,Patient")]
+        [Authorize(Roles = "Doctor,Patient,Admin")]
         [HttpPut("reschedule")]
         public async Task<IActionResult> RescheduleAppointment(RescheduleAppointmentDTO rescheduleDTO)
         {
@@ -456,7 +456,7 @@ namespace SatyamHealthCare.Controllers
             }
         }
 
-        [Authorize(Roles ="Doctor")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpPut("{appointmentId}/status")]
         public async Task<IActionResult> UpdateAppointmentStatus(int appointmentId, [FromBody] UpdatestatusDTO updateStatusDto)
         {

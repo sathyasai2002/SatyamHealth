@@ -288,7 +288,13 @@ namespace SatyamHealthCare.Controllers
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
-
+        [Authorize(Roles = "Patient")]
+        [HttpGet ("Getting All Doctors")]
+        public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctorsS()
+        {
+            var doctor = await doctor1.GetAllDoctors();
+            return Ok(doctor);
+        }
         private bool DoctorExists(int id)
         {
             return _context.Doctors.Any(e => e.DoctorId == id);

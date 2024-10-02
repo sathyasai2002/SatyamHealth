@@ -42,13 +42,11 @@ namespace SatyamHealthCare.Controllers
                 return Unauthorized("User email not found in the token.");
             }
 
-            // Determine if the user is an admin based on their email
             bool isAdmin = emailClaim.Value.Contains("admin", StringComparison.OrdinalIgnoreCase);
 
             if (isAdmin)
             {
-                // Fetch all appointments for Admin
-                var appointments = await appointment1.GetAllAppointments(); // Ensure this method is defined to get all appointments
+                var appointments = await appointment1.GetAllAppointments();
                 return Ok(appointments.Select(a => new AppointmentDTO
                 {
                     AppointmentId = a.AppointmentId,
@@ -63,7 +61,6 @@ namespace SatyamHealthCare.Controllers
             }
             else
             {
-                // Fetch appointments specific to the doctor for regular users
                 var doctorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
                 if (doctorIdClaim == null)
                 {
@@ -345,8 +342,8 @@ namespace SatyamHealthCare.Controllers
             bool isTimeSlotTaken = await _context.Appointments
                 .AnyAsync(a => a.DoctorId == appointmentDto.DoctorId &&
                                a.AppointmentDate == istDate &&
-                               a.AppointmentTime == appointmentDto.AppointmentTime &&
-                               a.Symptoms == appointmentDto.Symptoms);
+                               a.AppointmentTime == appointmentDto.AppointmentTime
+                              );
 
             if (isTimeSlotTaken)
             {

@@ -122,7 +122,6 @@ namespace SatyamHealthCare.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Get the PatientId from the JWT claims
             var patientIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (patientIdClaim == null)
             {
@@ -131,7 +130,6 @@ namespace SatyamHealthCare.Controllers
 
             int patientId = int.Parse(patientIdClaim.Value);
 
-            // Map DTO to Entity and save to the database
             var medicalHistory = new MedicalHistoryFile
             {
                 PatientId = patientId,
@@ -204,6 +202,35 @@ namespace SatyamHealthCare.Controllers
             };
             return new JsonResult(medicalHistoryDTO, options);
         }
+
+
+        [Authorize(Roles ="Patient")]
+        [HttpGet("GetLoggedInPatientMedicalHistory")]
+        public async Task<IActionResult> GetLoggedInPatientMedicalHistory()
+        {
+            var patientIdClaim = User.Claims.FirstOrDefault(c => c.Type == "PatientId")?.Value;
+
+            if (string.IsNullOrEmpty(patientIdClaim) || !int.TryParse(patientIdClaim, out int patientId))
+            {
+                return BadRequest("Valid Patient ID not found in claims.");
+            }
+
+            var medicalHistory = await _context.MedicalHistoryFiles
+                .Where(m => m.PatientId == patientId)
+                .ToListAsync();
+
+            if (medicalHistory == null || !medicalHistory.Any())
+            {
+                return NotFound("No medical history found for this patient.");
+            }
+
+            return Ok(medicalHistory);
+        }
+
+
+
+
+
 
         private bool MedicalHistoryFileExists(int id)
         {

@@ -1,7 +1,7 @@
 ﻿
    
     using Microsoft.EntityFrameworkCore;
-    using SatyamHealthCare.IRepos;
+using SatyamHealthCare.IRepos;
     using SatyamHealthCare.Models;
     namespace SatyamHealthCare.Repos
     {
@@ -64,5 +64,7 @@
             {
                 return _context.MedicalHistoryFiles.FirstOrDefault(m => m.MedicalHistoryId == id);
             }
-        }
+
+
+    }
     }

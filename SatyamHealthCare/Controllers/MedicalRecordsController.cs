@@ -8,6 +8,7 @@ using SatyamHealthCare.Models;
 using SatyamHealthCare.IRepos;
 using Microsoft.AspNetCore.Authorization;
 using SatyamHealthCare.Exceptions;
+
 namespace SatyamHealthCare.Controllers
 {
     [Route("api/[controller]")]
@@ -40,10 +41,10 @@ namespace SatyamHealthCare.Controllers
             {
                 PatientID = mr.PatientID,
                 DoctorID = mr.DoctorID,
-                ConsultationDateTime = mr.ConsultationDateTime,
                 Diagnosis = mr.Diagnosis,
+                RecordID = mr.RecordID,
                 PrescriptionID = mr.PrescriptionID,
-                
+                MedicalHistoryId = mr.MedicalHistoryId  
             }).ToList();
 
             return Ok(medicalRecordDtos);
@@ -66,22 +67,20 @@ namespace SatyamHealthCare.Controllers
             {
                 PatientID = medicalRecord.PatientID,
                 DoctorID = medicalRecord.DoctorID,
-                ConsultationDateTime = medicalRecord.ConsultationDateTime,
                 Diagnosis = medicalRecord.Diagnosis,
                 PrescriptionID = medicalRecord.PrescriptionID,
-                
+                MedicalHistoryId = medicalRecord.MedicalHistoryId  
             };
 
             return Ok(medicalRecordDto);
         }
 
         // PUT: api/MedicalRecords/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Doctor,Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutMedicalRecord(int id, MedicalRecordDTO medicalRecordDto)
         {
-            if (id != medicalRecordDto.PrescriptionID)
+            if (id != medicalRecordDto.RecordID)
             {
                 throw new ArgumentException("Provided medical record ID does not match the request.");
             }
@@ -89,12 +88,12 @@ namespace SatyamHealthCare.Controllers
             // Map MedicalRecordDTO to MedicalRecord
             var medicalRecord = new MedicalRecord
             {
-                RecordID = id, // Keep the same record ID
+                RecordID = id,
                 PatientID = medicalRecordDto.PatientID,
                 DoctorID = medicalRecordDto.DoctorID,
-                ConsultationDateTime = medicalRecordDto.ConsultationDateTime,
                 Diagnosis = medicalRecordDto.Diagnosis,
-                PrescriptionID = medicalRecordDto.PrescriptionID
+                PrescriptionID = medicalRecordDto.PrescriptionID,
+                MedicalHistoryId = medicalRecordDto.MedicalHistoryId  
             };
 
             try
@@ -117,8 +116,6 @@ namespace SatyamHealthCare.Controllers
         }
 
         // POST: api/MedicalRecords
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-
         [Authorize(Roles = "Doctor,Admin")]
         [HttpPost]
         public async Task<ActionResult<MedicalRecordDTO>> PostMedicalRecord(MedicalRecordDTO medicalRecordDto)
@@ -128,9 +125,9 @@ namespace SatyamHealthCare.Controllers
             {
                 PatientID = medicalRecordDto.PatientID,
                 DoctorID = medicalRecordDto.DoctorID,
-                ConsultationDateTime = medicalRecordDto.ConsultationDateTime,
                 Diagnosis = medicalRecordDto.Diagnosis,
-                PrescriptionID = medicalRecordDto.PrescriptionID
+                PrescriptionID = medicalRecordDto.PrescriptionID,
+                MedicalHistoryId = medicalRecordDto.MedicalHistoryId  
             };
 
             var createdMedicalRecord = await medicalRecord1.AddMedicalRecordAsync(medicalRecord);
@@ -139,9 +136,9 @@ namespace SatyamHealthCare.Controllers
             {
                 PatientID = createdMedicalRecord.PatientID,
                 DoctorID = createdMedicalRecord.DoctorID,
-                ConsultationDateTime = createdMedicalRecord.ConsultationDateTime,
                 Diagnosis = createdMedicalRecord.Diagnosis,
-                PrescriptionID = createdMedicalRecord.PrescriptionID
+                PrescriptionID = createdMedicalRecord.PrescriptionID,
+                MedicalHistoryId = createdMedicalRecord.MedicalHistoryId  
             };
 
             return CreatedAtAction("GetMedicalRecord", new { id = createdMedicalRecord.RecordID }, createdMedicalRecordDto);

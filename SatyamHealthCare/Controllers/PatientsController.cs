@@ -66,6 +66,33 @@ namespace SatyamHealthCare.Controllers
             return Ok(patient);
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin/{id}")]
+        public async Task<ActionResult<Patient>> ByAdminGetPatient(int id)
+        {
+            try
+            {
+                var patient = await patient1.GetPatientById(id);
+
+                if (patient == null)
+                {
+                    return NotFound($"Patient with ID {id} not found.");
+                }
+
+                return Ok(patient);
+            }
+            catch (PatientNotFoundException ex)  
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)  
+            {
+                
+                return StatusCode(500, "An error occurred while fetching patient details. Please try again later.");
+            }
+        }
+
+
 
         // PUT: api/Patients/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -113,7 +140,7 @@ namespace SatyamHealthCare.Controllers
 
         // POST: api/Patients
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        
+        [Authorize(Roles = "Patient,Admin")]
         [HttpPost]
         public async Task<ActionResult<Patient>> PostPatient(PatientDTO patientDto)
         {

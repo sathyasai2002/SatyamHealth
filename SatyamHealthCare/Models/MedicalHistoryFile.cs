@@ -39,6 +39,8 @@ namespace SatyamHealthCare.Models
         [MaxLength(255)]
         public string? VaccinationRecords { get; set; }
 
-    
+        public ICollection<MedicalRecord>? MedicalRecords { get; set; }
+
+
     }
 }

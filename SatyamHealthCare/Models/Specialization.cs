@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using System.Numerics;
 
 namespace SatyamHealthCare.Models
@@ -13,6 +14,7 @@ namespace SatyamHealthCare.Models
         public string SpecializationName { get; set; }
 
         // Navigation property
+        [JsonIgnore]
         public ICollection<Doctor>? Doctors { get; set; } = new List<Doctor>();
     }
 }

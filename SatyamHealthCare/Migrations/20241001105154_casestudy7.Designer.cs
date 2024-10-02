@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SatyamHealthCare.Models;
 
@@ -11,9 +12,11 @@ using SatyamHealthCare.Models;
 namespace SatyamHealthCare.Migrations
 {
     [DbContext(typeof(SatyamDbContext))]
-    partial class SatyamDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241001105154_casestudy7")]
+    partial class casestudy7
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -251,15 +254,15 @@ namespace SatyamHealthCare.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RecordID"));
 
+                    b.Property<DateTime>("ConsultationDateTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Diagnosis")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("DoctorID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MedicalHistoryId")
                         .HasColumnType("int");
 
                     b.Property<int>("PatientID")
@@ -271,8 +274,6 @@ namespace SatyamHealthCare.Migrations
                     b.HasKey("RecordID");
 
                     b.HasIndex("DoctorID");
-
-                    b.HasIndex("MedicalHistoryId");
 
                     b.HasIndex("PatientID");
 
@@ -495,12 +496,6 @@ namespace SatyamHealthCare.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SatyamHealthCare.Models.MedicalHistoryFile", "MedicalHistoryFile")
-                        .WithMany("MedicalRecords")
-                        .HasForeignKey("MedicalHistoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SatyamHealthCare.Models.Patient", "Patient")
                         .WithMany("MedicalRecords")
                         .HasForeignKey("PatientID")
@@ -508,8 +503,6 @@ namespace SatyamHealthCare.Migrations
                         .IsRequired();
 
                     b.Navigation("Doctor");
-
-                    b.Navigation("MedicalHistoryFile");
 
                     b.Navigation("Patient");
                 });
@@ -573,11 +566,6 @@ namespace SatyamHealthCare.Migrations
                 {
                     b.Navigation("Appointments");
 
-                    b.Navigation("MedicalRecords");
-                });
-
-            modelBuilder.Entity("SatyamHealthCare.Models.MedicalHistoryFile", b =>
-                {
                     b.Navigation("MedicalRecords");
                 });
 

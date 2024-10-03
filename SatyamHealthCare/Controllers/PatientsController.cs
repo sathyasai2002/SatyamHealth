@@ -140,7 +140,7 @@ namespace SatyamHealthCare.Controllers
 
         // POST: api/Patients
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "Patient,Admin")]
+       
         [HttpPost]
         public async Task<ActionResult<Patient>> PostPatient(PatientDTO patientDto)
         {
@@ -170,7 +170,7 @@ namespace SatyamHealthCare.Controllers
                 Pincode = patientDto.Pincode,
                 City = patientDto.City,
                 State = patientDto.State,
-                Password = patientDto.Password,
+                Password = patientDto.Password
                // ProfilePicture = patientDto.ProfilePicture
             };
             try

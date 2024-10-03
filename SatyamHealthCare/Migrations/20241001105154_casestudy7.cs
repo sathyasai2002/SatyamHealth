@@ -20,13 +20,7 @@ namespace SatyamHealthCare.Migrations
                 principalColumn: "PrescriptionID",
                 onDelete: ReferentialAction.Cascade);
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_PrescriptionTest_Tests_TestID",
-                table: "PrescriptionTest",
-                column: "TestID",
-                principalTable: "Tests",
-                principalColumn: "TestID",
-                onDelete: ReferentialAction.Cascade);
+         
         }
 
         /// <inheritdoc />

@@ -100,15 +100,14 @@ namespace SatyamHealthCare.Controllers
                 Experience = doctorDto.Experience,
                 SpecializationID = doctorDto.SpecializationID,
                 Qualification = doctorDto.Qualification,
-                AdminId = doctorDto.AdminId // Ensure the AdminId is properly set
+                AdminId = doctorDto.AdminId 
             };
 
-            // Use the injected repository method which internally uses the DbContext
             doctor1.UpdateDoctor(doctor);
 
             try
             {
-                await doctor1.Save(); // Make sure this method does not share DbContext across threads
+                await doctor1.Save();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -201,11 +200,10 @@ namespace SatyamHealthCare.Controllers
                     return NotFound("Doctor not found.");
                 }
 
-                return Ok(new { FullName = doctor.FullName, Email = doctor.Email }); // Return an object
+                return Ok(new { FullName = doctor.FullName, Email = doctor.Email });
             }
             catch (Exception ex)
             {
-                // Log the exception (consider using a logging framework)
                 return StatusCode(500, "Internal server error.");
             }
         }
@@ -236,11 +234,15 @@ namespace SatyamHealthCare.Controllers
                 var rescheduledAppointments = await _context.Appointments
                     .CountAsync(a => a.DoctorId == doctorId && a.Status == Status.AppointmentStatus.Rescheduled);
 
+                var completedAppointments = await _context.Appointments
+                    .CountAsync(a => a.DoctorId == doctorId && a.Status == Status.AppointmentStatus.Completed);
+
                 var response = new
                 {
                     TotalAppointments = totalAppointments,
                     PendingAppointments = pendingAppointments,
-                    RescheduledAppointments = rescheduledAppointments
+                    RescheduledAppointments = rescheduledAppointments,
+                    CompletedAppointments = completedAppointments
                 };
 
                 return Ok(response);
@@ -278,7 +280,8 @@ namespace SatyamHealthCare.Controllers
                         a.AppointmentId,
                         PatientName = _context.Patients.Where(p => p.PatientID == a.PatientId).Select(p => p.FullName).FirstOrDefault(),
                         a.AppointmentTime,
-                        a.PatientId
+                        a.PatientId,
+                        a.Status
                     })
                     .ToListAsync();
 
@@ -289,7 +292,6 @@ namespace SatyamHealthCare.Controllers
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
-        [Authorize(Roles = "Patient")]
         [HttpGet ("Getting All Doctors")]
         public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctorsS()
         {

@@ -173,6 +173,34 @@ namespace SatyamHealthCare.Repos
 
 
 
+        public async Task UpdateAppointmentStatusUsingHangfire(int appointmentId, AppointmentStatus newStatus)
+        {
+            Console.WriteLine($"Job started for Appointment ID: {appointmentId} at {DateTime.UtcNow}");
+            try
+            {
+                var appointment = await _context.Appointments.FindAsync(appointmentId);
+                if (appointment != null)
+                {
+                    appointment.Status = newStatus; // Update the status
+                    await _context.SaveChangesAsync(); // Save the changes
+                    Console.WriteLine($"Appointment ID {appointmentId} status updated to {newStatus}.");
+                }
+                else
+                {
+                    Console.WriteLine($"Appointment ID {appointmentId} not found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (you can use any logging framework)
+                Console.WriteLine($"Error updating appointment status: {ex.Message}");
+            }
+            Console.WriteLine($"Job finished for Appointment ID: {appointmentId} at {DateTime.UtcNow}");
+        }
+
+
+
+
     }
 
 

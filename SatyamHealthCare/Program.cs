@@ -14,6 +14,7 @@ using System.ComponentModel;
 using DinkToPdf.Contracts;
 using DinkToPdf;
 using SatyamHealthCare.Repositories;
+using Hangfire;
 
 namespace SatyamHealthCare
 {
@@ -98,7 +99,10 @@ namespace SatyamHealthCare
                     });
             });
 
-          
+            builder.Services.AddHangfire(configuration => configuration
+      .UseSqlServerStorage(builder.Configuration.GetConnectionString("HospContr")));
+            builder.Services.AddHangfireServer();
+
 
 
             builder.Services.AddSwaggerGen(options =>
@@ -148,7 +152,9 @@ namespace SatyamHealthCare
             app.UseRouting();
 
             app.UseAuthentication();
+            
             app.UseAuthorization();
+            app.UseHangfireDashboard();
             IConfiguration configuration = app.Configuration;
             IWebHostEnvironment environment = app.Environment;
 

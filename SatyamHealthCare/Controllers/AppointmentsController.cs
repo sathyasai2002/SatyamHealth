@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -218,7 +219,12 @@ namespace SatyamHealthCare.Controllers
             {
                 await _context.SaveChangesAsync();
 
-                // Send notification to the patient
+                var jobId = BackgroundJob.Schedule(
+     () => appointment1.UpdateAppointmentStatusUsingHangfire(appointment.AppointmentId, AppointmentStatus.Pending),
+     appointment.AppointmentDate.Value.Date.Add(appointment.AppointmentTime.Value)
+ );
+
+
                 await notificationService1.SendAppointmentRescheduleAsync(
                     appointment.Patient.Email,
                     appointment.Patient.ContactNumber,
@@ -340,10 +346,10 @@ namespace SatyamHealthCare.Controllers
             }
 
             bool isTimeSlotTaken = await _context.Appointments
-                .AnyAsync(a => a.DoctorId == appointmentDto.DoctorId &&
-                               a.AppointmentDate == istDate &&
-                               a.AppointmentTime == appointmentDto.AppointmentTime
-                              );
+      .AnyAsync(a => a.DoctorId == appointmentDto.DoctorId &&
+                     a.AppointmentDate == istDate &&
+                     a.AppointmentTime == appointmentDto.AppointmentTime &&
+                     a.Status != AppointmentStatus.Cancelled);
 
             if (isTimeSlotTaken)
             {
@@ -470,11 +476,6 @@ namespace SatyamHealthCare.Controllers
 
             return NoContent();
         }
-
-
-
-
-
 
 
         private bool AppointmentExists(int id)

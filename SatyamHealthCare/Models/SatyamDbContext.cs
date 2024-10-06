@@ -10,17 +10,17 @@ namespace SatyamHealthCare.Models
     {
         public SatyamDbContext(DbContextOptions<SatyamDbContext> options) : base(options)
         { }
-        public DbSet<Admin> Admins { get; set; }
-        public DbSet<Patient> Patients { get; set; }
-        public DbSet<Doctor> Doctors { get; set; }
-        public DbSet<Specialization> Specializations { get; set; }
-        public DbSet<Appointment> Appointments { get; set; }
-        public DbSet<MedicalRecord> MedicalRecords { get; set; }
-        public DbSet<MedicalHistoryFile> MedicalHistoryFiles { get; set; }
-        public DbSet<Prescription> Prescriptions { get; set; }
-        public DbSet<Test> Tests { get; set; }
+        public virtual DbSet<Admin> Admins { get; set; }
+        public virtual DbSet<Patient> Patients { get; set; }
+        public virtual DbSet<Doctor> Doctors { get; set; }
+        public virtual DbSet<Specialization> Specializations { get; set; }
+        public virtual DbSet<Appointment> Appointments { get; set; }
+        public virtual DbSet<MedicalRecord> MedicalRecords { get; set; }
+        public virtual DbSet<MedicalHistoryFile> MedicalHistoryFiles { get; set; }
+        public virtual DbSet<Prescription> Prescriptions { get; set; }
+        public virtual DbSet<Test> Tests { get; set; }
         
-         public DbSet<Medicine> Medicines { get; set; }
+         public virtual DbSet<Medicine> Medicines { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -19,7 +19,9 @@ namespace SatyamHealthCare.IRepos
         Task<bool> UpdateAppointmentStatusAsync(int appointmentId, string status);
         Task UpdateAppointmentStatusUsingHangfire(int appointmentId, AppointmentStatus newStatus);
         Task<bool> DeleteAppointment(int id);
-            Task Save();
+
+        Task<bool> AppointmentExists(int doctorId);
+        Task Save();
         
     }
 }

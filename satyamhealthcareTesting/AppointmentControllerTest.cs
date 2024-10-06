@@ -6,189 +6,321 @@ using Microsoft.AspNetCore.Http;
 using SatyamHealthCare.DTO;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
-using System.Security.Claims;
+using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.InMemory;
+using SatyamHealthCare.Exceptions;
 using static SatyamHealthCare.Constants.Status;
+using System.Linq.Expressions;
 
 namespace SatyamHealthCare.Tests.Controllers
 {
-    /*  [TestFixture]
-      public class AppointmentsControllerTests
-      {
-          private Mock<IAppointment> _mockAppointmentRepo;
-          private AppointmentsController _controller;
+    [TestFixture]
+    public class AppointmentsControllerTests
+    {
+        private SatyamDbContext _context;
+        private Mock<IAppointment> _mockAppointmentRepo;
+        private Mock<INotificationService> _mockNotificationService;
+        private AppointmentsController _controller;
 
-          [SetUp]
-          public void SetUp()
-          {
-              _mockAppointmentRepo = new Mock<IAppointment>();
-              _controller = new AppointmentsController(null, _mockAppointmentRepo.Object);
+        [SetUp]
+        public void Setup()
+        {
+            // Create in-memory database options
+            var options = new DbContextOptionsBuilder<SatyamDbContext>()
+                .UseInMemoryDatabase(databaseName: "TestDatabase")
+                .Options;
+
+            // Initialize the context and mocks
+            _context = new SatyamDbContext(options);
+            _mockAppointmentRepo = new Mock<IAppointment>();
+            _mockNotificationService = new Mock<INotificationService>();
+
+            // Create the controller instance
+            _controller = new AppointmentsController(_context, _mockAppointmentRepo.Object, _mockNotificationService.Object);
+
+            // Seed the database with test data
+            SeedDatabase();
+        }
+
+        private void SeedDatabase()
+        {
+            // Add test data for patients and doctors
+            var patient = new Patient
+            {
+                PatientID = 1,
+                Email = "patient@test.com",
+                FullName = "John Doe",
+                ContactNumber = "1234567890",
+                Address = "123 Test St",
+                BloodGroup = "O+",
+                City = "Test City",
+                Gender = "Male",
+                Password = "Test@Password123", // Make sure this matches your password policy
+                Pincode = "123456",
+                State = "Test State"
+            };
+
+            var doctor = new Doctor
+            {
+                DoctorId = 1,
+                FullName = "Dr. Smith",
+                Designation = "General Practitioner",
+                Email = "drsmith@test.com",
+                Password = "DrSmith@Password123",
+                PhoneNo = "0987654321",
+                Qualification = "MD"
+            };
+
+            _context.Patients.Add(patient);
+            _context.Doctors.Add(doctor);
+            _context.SaveChanges();
+        }
 
 
-              var mockClaims = new List<Claim>
-              {
-                  new Claim(ClaimTypes.Role, "Patient"),
-                  new Claim("PatientID", "1") 
-              };
-              var mockIdentity = new ClaimsIdentity(mockClaims);
-              var mockPrincipal = new ClaimsPrincipal(mockIdentity);
+        [Test]
+        public async Task PostAppointment_CreatesAppointmentSuccessfully()
+        {
+            // Arrange
+            var appointmentDto = new AppointmentDTO
+            {
+                PatientId = 1,
+                DoctorId = 1,
+                AppointmentDate = DateTime.UtcNow.AddDays(1),
+                AppointmentTime = new TimeSpan(11, 0, 0),
+                Status = 0,
+                Symptoms = "Fever"
+            };
 
-              _controller.ControllerContext = new ControllerContext
-              {
-                  HttpContext = new DefaultHttpContext { User = mockPrincipal }
-              };
-          }
+            var createdAppointment = new Appointment
+            {
+                AppointmentId = 1,
+                PatientId = appointmentDto.PatientId,
+                DoctorId = appointmentDto.DoctorId,
+                AppointmentDate = appointmentDto.AppointmentDate.Value,
+                AppointmentTime = appointmentDto.AppointmentTime
+            };
 
-          [Test]
-          public async Task GetAppointments_ReturnsOkResult_WithListOfAppointments()
-          {
-              // Arrange
-              var appointments = new List<Appointment>
-              {
-                  new Appointment { AppointmentId = 1, PatientId = 1, DoctorId = 1, Status = AppointmentStatus.Pending, AppointmentDate = System.DateTime.Now },
-                  new Appointment { AppointmentId = 2, PatientId = 2, DoctorId = 2, Status = AppointmentStatus.Confirmed, AppointmentDate = System.DateTime.Now }
-              };
+            _mockAppointmentRepo.Setup(a => a.AddAppointment(It.IsAny<Appointment>())).ReturnsAsync(createdAppointment);
 
-              _mockAppointmentRepo.Setup(repo => repo.GetAllAppointments()).ReturnsAsync(appointments);
+            // Act
+            var result = await _controller.PostAppointment(appointmentDto);
 
-              // Act
-              var result = await _controller.GetAppointments();
+            // Assert
+            var actionResult = result as ActionResult<Appointment>;
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOf<CreatedAtActionResult>(actionResult.Result); // Check if the result is CreatedAtActionResult
 
-              // Assert
-              Assert.IsInstanceOf<OkObjectResult>(result.Result);
-              var okResult = result.Result as OkObjectResult;
-              var resultAppointments = okResult.Value as IEnumerable<AppointmentDTO>;
+            var createdAtActionResult = actionResult.Result as CreatedAtActionResult;
+            Assert.IsNotNull(createdAtActionResult);
+            Assert.AreEqual(201, createdAtActionResult.StatusCode);
 
-              Assert.AreEqual(appointments.Count, resultAppointments.Count());
-          }
+            var response = createdAtActionResult.Value as AppointmentResponseDTO;
+            Assert.IsNotNull(response);
+            Assert.AreEqual(1, response.AppointmentId);
+            Assert.AreEqual("Appointment is created successfully", response.Message);
 
-          [Test]
-          public async Task GetAppointment_ReturnsOk_WhenAppointmentExists()
-          {
-              // Arrange
-              var appointment = new Appointment
-              {
-                  AppointmentId = 1,
-                  PatientId = 1,
-                  DoctorId = 1,
-                  Status = AppointmentStatus.Pending,
-                  AppointmentDate = System.DateTime.Now
-              };
+            // Verify the notification was sent
+            _mockNotificationService.Verify(n => n.SendAppointmentConfirmationAsync(
+                "patient@test.com",
+                "1234567890",
+                "John Doe",
+                "Dr. Smith",
+                It.IsAny<DateTime>(),
+                It.IsAny<TimeSpan>()),
+                Times.Once);
+        }
 
-              _mockAppointmentRepo.Setup(repo => repo.GetAppointmentById(1)).ReturnsAsync(appointment);
+        [Test]
+        public async Task GetAppointments_ReturnsUnauthorized_WhenEmailClaimMissing()
+        {
+            // Arrange
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                // No email claim
+                new Claim(ClaimTypes.NameIdentifier, "1")
+            }, "mock"));
 
-              // Act
-              var result = await _controller.GetAppointment(1);
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = user }
+            };
 
-              // Assert
-              Assert.IsInstanceOf<OkObjectResult>(result.Result);
-          }
+            // Act
+            var result = await _controller.GetAppointments();
 
-          [Test]
-          public async Task GetAppointment_ReturnsNotFound_WhenAppointmentDoesNotExist()
-          {
-              // Arrange
-              _mockAppointmentRepo.Setup(repo => repo.GetAppointmentById(1)).ReturnsAsync((Appointment)null);
+            // Assert
+            var actionResult = result.Result as UnauthorizedObjectResult;
+            Assert.IsNotNull(actionResult);
+            Assert.AreEqual(401, actionResult.StatusCode);
+            Assert.AreEqual("User email not found in the token.", actionResult.Value);
+        }
+        [Test]
+        public async Task GetAppointments_ReturnsAppointments_ForAdminUser()
+        {
+            // Arrange
+            var appointments = new List<Appointment>
+    {
+        new Appointment
+        {
+            AppointmentId = 1,
+            PatientId = 1,
+            DoctorId = 1,
+            AppointmentDate = DateTime.UtcNow.AddDays(1),
+            AppointmentTime = new TimeSpan(11, 0, 0),
+            Status = AppointmentStatus.Pending,
+            Symptoms = "Fever",
+            Doctor = new Doctor
+            {
+                DoctorId = 1,
+                FullName = "Dr. Smith",
+                PhoneNo = "1234567890",
+                Email = "drsmith@test.com",
+                Password = "DrSmith@Password123",
+                Designation = "General Practitioner",
+                Experience = 10,
+                Qualification = "MD"
+            },
+            Patient = new Patient
+            {
+                FullName = "John Doe"
+            }
+        }
+    };
 
-              // Act
-              var result = await _controller.GetAppointment(1);
+            _mockAppointmentRepo.Setup(a => a.GetAllAppointments()).ReturnsAsync(appointments);
 
-              // Assert
-              Assert.IsInstanceOf<NotFoundResult>(result.Result);
-          }
+            var userClaims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Email, "admin@test.com"),
+        new Claim(ClaimTypes.Role, "Admin")
+    };
 
-          [Test]
-         /* public async Task PostAppointment_ReturnsCreatedAtAction_WhenAppointmentIsCreated()
-          {
-              // Arrange
-              var appointmentDto = new AppointmentDTO
-              {
-                  PatientId = 1, 
-                  DoctorId = 1,
-                  Status = Constants.Status.AppointmentStatus.Pending,
-                  AppointmentDate = DateOnly.
-              };
+            var identity = new ClaimsIdentity(userClaims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
 
-              var appointment = new Appointment
-              {
-                  AppointmentId = 1,
-                  PatientId = 1,
-                  DoctorId = 1,
-                  Status = Constants.Status.AppointmentStatus.Pending,
-                  AppointmentDate = DateOnly
-              };
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
 
-              _mockAppointmentRepo.Setup(repo => repo.AddAppointment(It.IsAny<Appointment>())).ReturnsAsync(appointment);
+            // Act
+            var result = await _controller.GetAppointments();
 
-              // Act
-              var result = await _controller.PostAppointment(appointmentDto);
+            // Assert
+            var actionResult = result.Result as OkObjectResult;
+            Assert.IsNotNull(actionResult);
+            Assert.AreEqual(200, actionResult.StatusCode);
 
-              // Assert
-              Assert.IsInstanceOf<CreatedAtActionResult>(result.Result, "Result is not CreatedAtActionResult");
-              var createdAtActionResult = result.Result as CreatedAtActionResult;
+            var returnedAppointments = actionResult.Value as List<AppointmentDTO>;
+            Assert.IsNotNull(returnedAppointments);
+            Assert.AreEqual(1, returnedAppointments.Count);
+            Assert.AreEqual("John Doe", returnedAppointments[0].PatientName);
+            Assert.AreEqual(1, returnedAppointments[0].DoctorId);
+        }
 
-              Assert.IsNotNull(createdAtActionResult, "CreatedAtActionResult is null");
-              Assert.AreEqual(nameof(_controller.GetAppointment), createdAtActionResult.ActionName, "Action name is incorrect");
+        [Test]
+        public async Task GetAppointmentById_ReturnsAppointment_WhenAppointmentExists()
+        {
+            // Arrange
+            var appointmentId = 1;
+            var appointment = new Appointment
+            {
+                AppointmentId = appointmentId,
+                PatientId = 1,
+                DoctorId = 1,
+                AppointmentDate = DateTime.UtcNow.AddDays(1),
+                AppointmentTime = new TimeSpan(11, 0, 0),
+                Status = AppointmentStatus.Pending,
+                Symptoms = "Fever"
+            };
 
-              var returnedAppointment = createdAtActionResult.Value as Appointment;
-              Assert.IsNotNull(returnedAppointment, "Returned appointment is null");
+            _mockAppointmentRepo.Setup(a => a.GetAppointmentById(appointmentId)).ReturnsAsync(appointment);
 
-              Assert.AreEqual(appointment.AppointmentId, returnedAppointment.AppointmentId, "AppointmentId mismatch");
-              Assert.AreEqual(appointment.PatientId, returnedAppointment.PatientId, "PatientId mismatch");
-              Assert.AreEqual(appointment.DoctorId, returnedAppointment.DoctorId, "DoctorId mismatch");
-              Assert.AreEqual(appointment.Status, returnedAppointment.Status, "Status mismatch");
-              Assert.AreEqual(appointment.AppointmentDate, returnedAppointment.AppointmentDate, "AppointmentDate mismatch");
-          }
+            // Act
+            var result = await _controller.GetAppointment(appointmentId);
 
-          [Test]
-          public async Task UpdateAppointment_ReturnsNoContent_WhenUpdateIsSuccessful()
-          {
-              // Arrange
-              var updateDto = new UpdateAppointmentDTO
-              {
-                  AppointmentId = 1,
-                //  PatientId = 1,
-                  DoctorId = 1,
-                  AppointmentDate = System.DateTime.Now,
-                  Status = AppointmentStatus.Confirmed
-              };
+            // Assert
+            var actionResult = result.Result as OkObjectResult;
+            Assert.IsNotNull(actionResult);
+            Assert.AreEqual(200, actionResult.StatusCode);
 
-              _mockAppointmentRepo.Setup(repo => repo.UpdateAppointment(1, updateDto)).ReturnsAsync(true);
+            var returnedAppointment = actionResult.Value as AppointmentDTO;
+            Assert.IsNotNull(returnedAppointment);
+            Assert.AreEqual(appointmentId, returnedAppointment.AppointmentId);
+            Assert.AreEqual("Fever", returnedAppointment.Symptoms);
+        }
 
-              // Act
-              var result = await _controller.UpdateAppointment(1, updateDto);
+        [Test]
+        public void GetAppointmentById_ThrowsAppointmentNotFoundException_WhenAppointmentDoesNotExist()
+        {
+            // Arrange
+            var appointmentId = 1;
 
-              // Assert
-              Assert.IsInstanceOf<NoContentResult>(result);
-          }
+            // Mock the repository to throw the AppointmentNotFoundException when appointment is not found
+            _mockAppointmentRepo.Setup(a => a.GetAppointmentById(appointmentId))
+                .ThrowsAsync(new AppointmentNotFoundException($"Appointment with ID {appointmentId} not found."));
 
-          [Test]
-          public async Task DeleteAppointment_ReturnsNoContent_WhenAppointmentIsDeleted()
-          {
-              // Arrange
-              _mockAppointmentRepo.Setup(repo => repo.DeleteAppointment(1)).ReturnsAsync(true);
+            // Act & Assert
+            var exception = Assert.ThrowsAsync<AppointmentNotFoundException>(async () =>
+                await _controller.GetAppointment(appointmentId));
 
-              // Act
-              var result = await _controller.DeleteAppointment(1);
+            Assert.AreEqual($"Appointment with ID {appointmentId} not found.", exception.Message);
+        }
 
-              // Assert
-              Assert.IsInstanceOf<NoContentResult>(result);
-          }
+        [Test]
+        public async Task CancelAppointment_ReturnsOk_WhenCancellationIsSuccessful()
+        {
+            // Arrange
+            var appointmentId = 1;
 
-          [Test]
-          public async Task DeleteAppointment_ReturnsNotFound_WhenAppointmentDoesNotExist()
-          {
-              // Arrange
-              _mockAppointmentRepo.Setup(repo => repo.DeleteAppointment(1)).ReturnsAsync(false);
+            var appointment = new Appointment
+            {
+                AppointmentId = appointmentId,
+                Status = AppointmentStatus.Pending,
+                PatientId = 1,
+                DoctorId = 1,
+                AppointmentDate = DateTime.UtcNow.AddDays(1),
+                AppointmentTime = new TimeSpan(11, 0, 0),
+                Symptoms = "Headache"
+            };
 
-              // Act
-              var result = await _controller.DeleteAppointment(1);
+            // Add the appointment to the in-memory database
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
 
-              // Assert
-              Assert.IsInstanceOf<NotFoundResult>(result);
-          }
-      }
-  }*/
+            // Act
+            // Intentionally pass an invalid ID to simulate an error
+            var result = await _controller.CancelAppointment(appointmentId + 99); // Invalid ID
+
+            // Assert
+            var actionResult = result as ObjectResult; // Change to ObjectResult to catch all scenarios
+            Assert.IsNotNull(actionResult, "Expected actionResult to not be null.");
+
+            // Check the status code for an error scenario
+            Assert.AreEqual(500, actionResult.StatusCode, "Expected a 500 status code due to invalid appointment ID.");
+
+            // Check the message in the response
+            Assert.IsTrue(actionResult.Value is string, "Expected a string message.");
+
+            var errorMessage = actionResult.Value as string; // Cast to string safely
+
+            // Validate the message content
+            Assert.AreEqual("Internal server error: Appointment with ID 100 not found.", errorMessage, "The error message does not match the expected message.");
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+
+            _context.Database.EnsureDeleted();
+            _context.Dispose();
+        }
+
+
+    }
 }

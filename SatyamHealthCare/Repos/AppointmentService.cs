@@ -170,6 +170,13 @@ namespace SatyamHealthCare.Repos
             return true; 
         }
 
+        public async Task<bool> AppointmentExists(int doctorId)
+        {
+            // Asynchronously check if any appointment exists for the given doctorId
+            return await _context.Appointments.AnyAsync(a => a.DoctorId == doctorId);
+        }
+
+
 
 
 

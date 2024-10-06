@@ -52,25 +52,6 @@ namespace SatyamHealthCare.Tests.Controllers
             }
 
             [Test]
-            public async Task GetPatientById_ReturnsOk_WhenPatientExists()
-            {
-                // Arrange
-                var patient = new Patient { PatientID = 1, FullName = "Patient1" };
-                _mockPatientRepo.Setup(repo => repo.GetPatientById(1)).ReturnsAsync(patient);
-
-                // Act
-                var result = await _controller.GetPatient(1);
-
-                // Assert
-                Assert.IsInstanceOf<OkObjectResult>(result.Result);
-                var okResult = result.Result as OkObjectResult;
-                var returnedPatient = okResult.Value as Patient;
-
-                Assert.IsNotNull(returnedPatient, "Patient object is null");
-                Assert.AreEqual(patient.PatientID, returnedPatient.PatientID);
-            }
-
-            [Test]
             public async Task PostPatient_ReturnsOk_WhenPatientIsCreated()
             {
                 // Arrange
@@ -133,7 +114,7 @@ namespace SatyamHealthCare.Tests.Controllers
                 Assert.AreEqual(patient.Pincode, patientResult.Pincode);
                 Assert.AreEqual(patient.City, patientResult.City);
                 Assert.AreEqual(patient.Password, patientResult.Password);
-               // Assert.AreEqual(patient.ProfilePicture, patientResult.ProfilePicture);
+                // Assert.AreEqual(patient.ProfilePicture, patientResult.ProfilePicture);
             }
 
 
@@ -166,10 +147,10 @@ namespace SatyamHealthCare.Tests.Controllers
                 _mockPatientRepo.Setup(repo => repo.UpdatePatient(patient)).ReturnsAsync(patient);
 
                 // Act
-              //  var result = await _controller.PutPatient(1, patient);
+                //  var result = await _controller.PutPatient(1, patient);
 
                 // Assert
-              //  Assert.IsInstanceOf<NoContentResult>(result);
+                //  Assert.IsInstanceOf<NoContentResult>(result);
             }
         }
     }

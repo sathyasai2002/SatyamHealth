@@ -1,6 +1,7 @@
 ﻿using SatyamHealthCare.Constants;
 using SatyamHealthCare.DTO;
 using SatyamHealthCare.Models;
+using static SatyamHealthCare.Constants.Status;
 
 namespace SatyamHealthCare.IRepos
 {
@@ -14,7 +15,9 @@ namespace SatyamHealthCare.IRepos
         Task<List<Appointment>> GetAppointmentsByPatientId(int patientId);
         Task<List<Appointment>> GetFilteredAppointmentsByDoctorId(int doctorId, DateTime? startDate, DateTime? endDate, Status.AppointmentStatus? status);
         Task<bool> RescheduleAppointmentAsync(int appointmentId, DateTime newDate, TimeSpan newTime, int doctorId);
+
         Task<bool> UpdateAppointmentStatusAsync(int appointmentId, string status);
+        Task UpdateAppointmentStatusUsingHangfire(int appointmentId, AppointmentStatus newStatus);
         Task<bool> DeleteAppointment(int id);
 
         Task<bool> AppointmentExists(int doctorId);

@@ -21,35 +21,46 @@ namespace SatyamHealthCare.Repos
             _converter = converter;
         }
 
-        public async Task<IEnumerable<Prescription>> GetAllPrescriptionsAsync()
-        {
-            return await _context.Prescriptions
-                .Include(p => p.PrescriptionMedicines)
-                    .ThenInclude(pm => pm.Medicine)
-                .Include(p => p.PrescriptionTests)
-                    .ThenInclude(pt => pt.Test)
-                .ToListAsync();
-        }
-
-        public async Task<Prescription?> GetPrescriptionById(int id)
-        {
-            return await _context.Prescriptions
-                .Include(p => p.PrescriptionMedicines)
-                    .ThenInclude(pm => pm.Medicine)
-                .Include(p => p.PrescriptionTests)
-                    .ThenInclude(pt => pt.Test)
-                .Include(p => p.Appointment)  
-                    .ThenInclude(a => a.Patient) 
-                .Include(p => p.Appointment)
-                    .ThenInclude(a => a.Doctor)  
-                .FirstOrDefaultAsync(p => p.PrescriptionID == id);
-        }
-
-        
         public async Task AddPrescriptionAsync(Prescription prescription)
         {
             _context.Prescriptions.Add(prescription);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Prescription>> GetAllPrescriptionsAsync()
+        {
+            return await _context.Prescriptions
+                .Include(p => p.PrescriptionMedicines)
+                    .ThenInclude(pm => pm.Medicine)
+                .Include(p => p.Appointment)
+                .Include(p => p.PrescriptionTests)
+                    .ThenInclude(pt => pt.Test)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Prescription>> GetPrescriptionsByAppointmentIdAsync(int appointmentId)
+        {
+            var prescriptions = await _context.Prescriptions
+                .Where(p => p.AppointmentId == appointmentId)
+                .Include(p => p.PrescriptionMedicines)
+                    .ThenInclude(pm => pm.Medicine)
+                .Include(p => p.PrescriptionTests)
+                    .ThenInclude(pt => pt.Test)
+                .ToListAsync();
+
+            return prescriptions;
+        }
+
+        public async Task<Prescription> GetPrescriptionByIdAsync(int id)
+        {
+            return await _context.Prescriptions
+                .Include(p => p.PrescriptionMedicines)
+                    .ThenInclude(pm => pm.Medicine)
+                .Include(p => p.Appointment)
+                .Include(p => p.PrescriptionTests)
+                    .ThenInclude(pt => pt.Test)
+                .FirstOrDefaultAsync(p => p.PrescriptionID == id);
+        }
+
     }
 }

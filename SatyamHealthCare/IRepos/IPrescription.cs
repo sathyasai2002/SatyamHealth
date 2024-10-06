@@ -4,8 +4,9 @@ namespace SatyamHealthCare.IRepos
 {
     public interface IPrescription
     {
-        Task<IEnumerable<Prescription>> GetAllPrescriptionsAsync();
-        Task<Prescription?> GetPrescriptionById(int id);
         Task AddPrescriptionAsync(Prescription prescription);
+        Task<IEnumerable<Prescription>> GetAllPrescriptionsAsync();
+        Task<IEnumerable<Prescription>> GetPrescriptionsByAppointmentIdAsync(int appointmentId);
+        Task<Prescription> GetPrescriptionByIdAsync(int id);
     }
 }

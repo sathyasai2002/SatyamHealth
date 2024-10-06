@@ -181,8 +181,8 @@ namespace SatyamHealthCare.Repos
                 var appointment = await _context.Appointments.FindAsync(appointmentId);
                 if (appointment != null)
                 {
-                    appointment.Status = newStatus; // Update the status
-                    await _context.SaveChangesAsync(); // Save the changes
+                    appointment.Status = newStatus;
+                    await _context.SaveChangesAsync(); 
                     Console.WriteLine($"Appointment ID {appointmentId} status updated to {newStatus}.");
                 }
                 else

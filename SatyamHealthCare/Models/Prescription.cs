@@ -7,26 +7,16 @@ public class Prescription
     [Key]
     public int PrescriptionID { get; set; }
 
-    [Required]
-    public int NoOfDays { get; set; }
-
-    [Required]
-    [MaxLength(50)]
-    public string Dosage { get; set; }
-
-    [Required]
-    [MaxLength(100)]
-    public string BeforeAfterFood { get; set; }
-
     [MaxLength(255)]
     public string Remark { get; set; }
 
-    public int? AppointmentId { get; set; }
+    public int AppointmentId { get; set; }
 
     [ForeignKey("AppointmentId")]
     public virtual Appointment Appointment { get; set; }
 
+    // Updated navigation property for Prescription Medicines
+    public virtual ICollection<PrescriptionMedicine> PrescriptionMedicines { get; set; } = new List<PrescriptionMedicine>();
 
-    public virtual ICollection<PrescriptionMedicine> PrescriptionMedicines { get; set; }
     public virtual ICollection<PrescriptionTest> PrescriptionTests { get; set; }
 }

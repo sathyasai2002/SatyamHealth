@@ -15,6 +15,9 @@ using DinkToPdf.Contracts;
 using DinkToPdf;
 using SatyamHealthCare.Repositories;
 using Hangfire;
+using log4net.Config;
+using log4net;
+using System.Reflection;
 
 namespace SatyamHealthCare
 {
@@ -22,6 +25,9 @@ namespace SatyamHealthCare
     {
         public static void Main(string[] args)
         {
+            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
+            XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.

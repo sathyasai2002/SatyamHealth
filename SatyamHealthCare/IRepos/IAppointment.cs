@@ -16,7 +16,9 @@ namespace SatyamHealthCare.IRepos
         Task<bool> RescheduleAppointmentAsync(int appointmentId, DateTime newDate, TimeSpan newTime, int doctorId);
         Task<bool> UpdateAppointmentStatusAsync(int appointmentId, string status);
         Task<bool> DeleteAppointment(int id);
-            Task Save();
+
+        Task<bool> AppointmentExists(int doctorId);
+        Task Save();
         
     }
 }

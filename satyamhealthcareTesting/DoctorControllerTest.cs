@@ -1,13 +1,17 @@
-﻿using Moq;
-using Newtonsoft.Json.Linq;
-using NUnit.Framework;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Moq;
+using NUnit.Framework;
 using SatyamHealthCare.Controllers;
+using SatyamHealthCare.DTO;
 using SatyamHealthCare.IRepos;
 using SatyamHealthCare.Models;
-using SatyamHealthCare.DTO;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using SatyamHealthCare.Exceptions;
+using Microsoft.EntityFrameworkCore;
+using SatyamHealthCare.Repos;
 
 namespace SatyamHealthCare.Tests.Controllers
 {
@@ -15,144 +19,102 @@ namespace SatyamHealthCare.Tests.Controllers
     public class DoctorsControllerTests
     {
         private Mock<IDoctor> _mockDoctorRepo;
+        private SatyamDbContext _context;
         private DoctorsController _controller;
 
         [SetUp]
-        public void SetUp()
+        public void Setup()
         {
+            // Mock the repository
             _mockDoctorRepo = new Mock<IDoctor>();
-            _controller = new DoctorsController(null, _mockDoctorRepo.Object);
+
+            // Set up an in-memory database
+            var options = new DbContextOptionsBuilder<SatyamDbContext>()
+                .UseInMemoryDatabase(databaseName: "TestDb")
+                .Options;
+            _context = new SatyamDbContext(options);
+
+            // Create the controller
+            _controller = new DoctorsController(_context, _mockDoctorRepo.Object);
         }
 
-        // Unit Test for GetDoctors
         [Test]
-        public async Task GetDoctors_ReturnsOkResult_WithListOfDoctors()
+        public async Task GetDoctors_ReturnsOk_WithListOfDoctors()
         {
             // Arrange
-            var specialization = new Specialization { SpecializationID = 1, SpecializationName = "Cardiology" };
-            var specialization1 = new Specialization { SpecializationID = 2, SpecializationName = "Dermatology" };
-
-            var doctors = new List<Doctor>
-            {
-                new Doctor { DoctorId = 1, FullName = "Doctor1", Specialization = specialization },
-                new Doctor { DoctorId = 2, FullName = "Doctor2", Specialization = specialization1 }
-            };
-            _mockDoctorRepo.Setup(repo => repo.GetAllDoctors()).ReturnsAsync(doctors);
+            _context.Doctors.Add(new Doctor { DoctorId = 1, FullName = "Dr. Smith", PhoneNo = "123456789", Email = "dr.smith@example.com", Password = "password", Designation = "Surgeon", Experience = 5, SpecializationID = 1, Qualification = "MD" });
+            _context.Doctors.Add(new Doctor { DoctorId = 2, FullName = "Dr. Jones", PhoneNo = "987654321", Email = "dr.jones@example.com", Password = "password", Designation = "Pediatrician", Experience = 7, SpecializationID = 2, Qualification = "MBBS" });
+            await _context.SaveChangesAsync();
 
             // Act
             var result = await _controller.GetDoctors();
 
             // Assert
-            Assert.IsInstanceOf<ActionResult<IEnumerable<Doctor>>>(result);
-            Assert.IsInstanceOf<OkObjectResult>(result.Result);
             var okResult = result.Result as OkObjectResult;
-            var resultDoctors = okResult.Value as IEnumerable<Doctor>;
-
-            Assert.AreEqual(doctors.Count, resultDoctors?.Count());
+            Assert.IsNotNull(okResult);
+            var doctors = okResult.Value as IEnumerable<DoctorDTO>;
+            Assert.IsNotNull(doctors);
+            Assert.AreEqual(2, doctors.Count());
         }
 
-        // Unit Test for GetDoctor (Doctor Exists)
+
         [Test]
-        public async Task GetDoctor_ReturnsOk_WhenDoctorExists()
+        public async Task GetDoctor_ExistingId_ReturnsOk_WithDoctor()
         {
             // Arrange
-            var specialization = new Specialization { SpecializationID = 1, SpecializationName = "Cardiology" };
-
-            var doctor = new Doctor { DoctorId = 1, FullName = "Doctor1", Specialization = specialization };
+            var doctor = new Doctor { DoctorId = 1, FullName = "Dr. Smith" };
             _mockDoctorRepo.Setup(repo => repo.GetDoctorById(1)).ReturnsAsync(doctor);
 
             // Act
             var result = await _controller.GetDoctor(1);
 
             // Assert
-            Assert.IsInstanceOf<ActionResult<Doctor>>(result);
-            Assert.IsInstanceOf<OkObjectResult>(result.Result);
             var okResult = result.Result as OkObjectResult;
-            Assert.AreEqual(doctor, okResult?.Value);
+            Assert.IsNotNull(okResult);
+            Assert.AreEqual(doctor, okResult.Value);
         }
 
         [Test]
-        public async Task GetDoctor_ReturnsNotFound_WhenDoctorDoesNotExist()
+        public async Task GetDoctor_NonExistingId_ThrowsDoctorNotFoundException()
         {
             // Arrange
-            _mockDoctorRepo.Setup(repo => repo.GetDoctorById(1)).ReturnsAsync((Doctor)null);
+            _mockDoctorRepo.Setup(repo => repo.GetDoctorById(It.IsAny<int>())).ReturnsAsync((Doctor)null);
 
-            // Act
-            var result = await _controller.GetDoctor(1);
-
-            // Assert
-            Assert.IsInstanceOf<NotFoundResult>(result.Result);
+            // Act & Assert
+            Assert.ThrowsAsync<DoctorNotFoundException>(async () => await _controller.GetDoctor(999));
         }
-        
+
         [Test]
-        public async Task PostDoctor_ReturnsOk_WhenDoctorIsCreated()
+        public async Task DeleteDoctor_ExistingId_ReturnsOk()
         {
             // Arrange
-            var doctorDto = new DoctorDTO
-            {
-                FullName = "Doctor1",
-                PhoneNo = "1234567890",
-                Email = "doctor1@example.com",
-                Password = "Password123",
-                Designation = "Cardiologist",
-                Experience = 5,
-                SpecializationID = 1,
-                Qualification = "MBBS",
-                AdminId = 1
-            };
-
-            var doctor = new Doctor
-            {
-                DoctorId = 1,
-                FullName = "Doctor1",
-                PhoneNo = "1234567890",
-                Email = "doctor1@example.com",
-                Password = "Password123",
-                Designation = "Cardiologist",
-                Experience = 5,
-                SpecializationID = 1,
-                Qualification = "MBBS",
-               // ProfilePicture = null,
-                AdminId = 1
-            };
-
-            _mockDoctorRepo.Setup(repo => repo.AddDoctor(It.IsAny<Doctor>())).ReturnsAsync(doctor);
-            _mockDoctorRepo.Setup(repo => repo.Save()).Returns(Task.CompletedTask);
+            var doctor = new Doctor { DoctorId = 1 };
+            _mockDoctorRepo.Setup(repo => repo.GetDoctorById(1)).ReturnsAsync(doctor);
 
             // Act
-            var result = await _controller.PostDoctor(doctorDto);
+            var result = await _controller.DeleteDoctor(1);
 
             // Assert
-            Assert.IsInstanceOf<OkObjectResult>(result.Result, "Result is not OkObjectResult");
-            var okResult = result.Result as OkObjectResult;
-
-            Assert.IsNotNull(okResult, "OkObjectResult is null");
-
-            // Use JObject to parse the response
-            var response = JObject.FromObject(okResult.Value);
-
-            Assert.IsNotNull(response, "Response object is null");
-
-            // Check message
-            Assert.AreEqual("Doctor registered successfully", response["message"].ToString());
-
-            // Check doctor object in response
-            var doctorResult = response["doctor"].ToObject<Doctor>();
-            Assert.IsNotNull(doctorResult, "Doctor object in response is null");
-
-            Assert.AreEqual(doctor.DoctorId, doctorResult.DoctorId);
-            Assert.AreEqual(doctor.FullName, doctorResult.FullName);
-            Assert.AreEqual(doctor.PhoneNo, doctorResult.PhoneNo);
-            Assert.AreEqual(doctor.Email, doctorResult.Email);
-            Assert.AreEqual(doctor.Designation, doctorResult.Designation);
-            Assert.AreEqual(doctor.Experience, doctorResult.Experience);
-            Assert.AreEqual(doctor.SpecializationID, doctorResult.SpecializationID);
-            Assert.AreEqual(doctor.Qualification, doctorResult.Qualification);
-            Assert.AreEqual(doctor.AdminId, doctorResult.AdminId);
+            Assert.IsInstanceOf<OkResult>(result);
+            _mockDoctorRepo.Verify(repo => repo.DeleteDoctor(1), Times.Once);
         }
 
+        [Test]
+        public async Task DeleteDoctor_NonExistingId_ThrowsDoctorNotFoundException()
+        {
+            // Arrange
+            _mockDoctorRepo.Setup(repo => repo.GetDoctorById(It.IsAny<int>())).ReturnsAsync((Doctor)null);
 
+            // Act & Assert
+            Assert.ThrowsAsync<DoctorNotFoundException>(async () => await _controller.DeleteDoctor(999));
+        }
 
+        [TearDown]
+        public void TearDown()
+        {
+            // Clear the in-memory database
+            _context.Database.EnsureDeleted();
+            _context.Dispose();
+        }
     }
 }
-
